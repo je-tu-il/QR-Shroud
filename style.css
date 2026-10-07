@@ -853,6 +853,51 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus {
 }
 
 /* Method choices */
+.card-header-with-badge {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.scannable-card {
+  border-color: rgba(16, 185, 129, 0.35);
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.08);
+}
+
+.scannable-inputs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--border-color);
+}
+
+@media (max-width: 760px) {
+  .scannable-inputs-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.scannable-inputs-grid .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.scannable-inputs-grid label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.scannable-inputs-grid input[type="text"] {
+  background: var(--bg-card);
+  font-size: 0.86rem;
+  padding: 0.55rem 0.75rem;
+}
+
 .method-choices {
   display: flex;
   flex-direction: column;

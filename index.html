@@ -315,6 +315,54 @@
         </div>
 
         <div class="step-3-grid">
+          <!-- Smartphone Scannability Mode Card -->
+          <div class="card config-card full-width scannable-card">
+            <div class="config-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+            </div>
+            <div class="card-header-with-badge">
+              <h3>Compatibilité Scanner Smartphone (iPhone & Android)</h3>
+              <span class="pill-recommended">Garantie Détection iPhone</span>
+            </div>
+            <p class="card-desc">Choisissez si les QR codes doivent être directement reconnus et scannés par l'appareil photo de votre smartphone :</p>
+
+            <div class="method-choices">
+              <label class="method-card active" id="card-mode-scannable">
+                <input type="radio" name="scan-compatibility" value="scannable" checked>
+                <div class="method-content">
+                  <div class="method-title">
+                    <strong>Vrais QR Codes Scannables par iPhone & Android (Recommandé)</strong>
+                    <span class="badge" style="background:#065f46; color:#34d399; border:none;">✓ Détecté à 100% par l'appareil photo</span>
+                  </div>
+                  <p>Chaque part est un authentique code QR aux normes ISO avec correction d'erreur maximale (Reed-Solomon Level H). Votre iPhone le détecte instantanément avec son cadre jaune et lit le message/URL leurre ci-dessous, tout en permettant la superposition du secret !</p>
+                  
+                  <!-- Decoy texts per share -->
+                  <div class="scannable-inputs-grid" id="scannable-inputs-grid">
+                    <div class="form-group">
+                      <label for="scannable-text-1">Message ou URL scanné par l'iPhone pour la Part 1 :</label>
+                      <input type="text" id="scannable-text-1" value="Clé 1/2 : Superposez ce QR avec la Clé 2 pour révéler le secret !">
+                    </div>
+                    <div class="form-group">
+                      <label for="scannable-text-2">Message ou URL scanné par l'iPhone pour la Part 2 :</label>
+                      <input type="text" id="scannable-text-2" value="Clé 2/2 : Superposez ce QR avec la Clé 1 pour révéler le secret !">
+                    </div>
+                  </div>
+                </div>
+              </label>
+
+              <label class="method-card" id="card-mode-pure">
+                <input type="radio" name="scan-compatibility" value="pure">
+                <div class="method-content">
+                  <div class="method-title">
+                    <strong>Stéganographie Visuelle Pure Naor-Shamir (Non scannable par caméra)</strong>
+                    <span class="pill-tech">Pour calque physique uniquement</span>
+                  </div>
+                  <p>100% de la surface des modules est dédiée au bruit cryptographique binaire. Ce mode ne contient pas de données scannables et ne sera pas reconnu par un smartphone : il est fait exclusivement pour être empilé physiquement sur des feuilles transparentes.</p>
+                </div>
+              </label>
+            </div>
+          </div>
+
           <!-- Shares Card -->
           <div class="card config-card">
             <div class="config-icon">
@@ -616,8 +664,9 @@
     </footer>
   </div>
 
-  <!-- Local JSZip Library -->
+  <!-- Local Libraries -->
   <script src="jszip.min.js"></script>
+  <script src="qrcode.min.js"></script>
   <!-- Application Core Script -->
   <script src="app.js"></script>
 </body>

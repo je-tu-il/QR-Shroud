@@ -35,6 +35,12 @@
   - Curseurs de seuil, contraste, luminosité et inversion des couleurs.
   - Statistiques de densité de pixels en temps réel.
 
+- **📱 Compatibilité Scanner Smartphone (iPhone & Android)** :
+  - **Vrais QR Codes ISO/IEC 18004** : chaque part est un authentique QR code détecté instantanément par l'application Appareil Photo d'iOS et d'Android (avec le cadre jaune de détection).
+  - **Messages ou URLs leurres personnalisables** lors du scan (ex : *"Clé 1/2 : Superposez ce QR avec la Clé 2..."* ou une vraie URL `https://...`).
+  - **Correction d'erreur maximale Level H (30%)** : garantit une lecture fluide et robuste même avec la modulation stéganographique intégrée.
+  - Option également disponible pour le mode académique pur (non scannable).
+
 - **🔒 Moteur Cryptographique & Camouflage** :
   - **Superposition Physique / Transparence (Naor-Shamir 2×2 subpixels)** : conçu pour l'impression physique. Les blancs laissent passer 50% de lumière, les noirs deviennent 100% opaques. Révélation directe à l'œil nu sans ordinateur.
   - **Superposition Numérique XOR (1 module = 1 pixel)** : 100% de netteté pour décodage sur écran.

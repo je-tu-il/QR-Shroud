@@ -26,6 +26,9 @@
     binarizedMatrix: null, // 2D array of booleans: true = black/dark, false = white/light
 
     // Secret sharing settings (Step 3)
+    scanCompatibility: 'scannable', // 'scannable' | 'pure'
+    scannableText1: 'Clé 1/2 : Superposez ce QR avec la Clé 2 pour révéler le secret !',
+    scannableText2: 'Clé 2/2 : Superposez ce QR avec la Clé 1 pour révéler le secret !',
     sharesCount: 2,
     cryptoMethod: 'optical', // 'optical' (Naor-Shamir 2x2) | 'xor' (1:1 modular)
     optFinderPatterns: true,
@@ -120,6 +123,12 @@
     btnGotoStep3: document.getElementById('btn-goto-step-3'),
 
     // Step 3
+    scanCompatibilityInputs: document.querySelectorAll('input[name="scan-compatibility"]'),
+    cardModeScannable: document.getElementById('card-mode-scannable'),
+    cardModePure: document.getElementById('card-mode-pure'),
+    scannableInputsGrid: document.getElementById('scannable-inputs-grid'),
+    scannableText1: document.getElementById('scannable-text-1'),
+    scannableText2: document.getElementById('scannable-text-2'),
     sharesPills: document.querySelectorAll('.shares-pill'),
     customSharesInput: document.getElementById('custom-shares-input'),
     cryptoMethodInputs: document.querySelectorAll('input[name="crypto-method"]'),
@@ -723,6 +732,30 @@
       });
     });
 
+    // Scannability selection cards
+    if (dom.scanCompatibilityInputs) {
+      dom.scanCompatibilityInputs.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+          state.scanCompatibility = e.target.value;
+          const isScannable = (state.scanCompatibility === 'scannable');
+          if (dom.cardModeScannable) dom.cardModeScannable.classList.toggle('active', isScannable);
+          if (dom.cardModePure) dom.cardModePure.classList.toggle('active', !isScannable);
+          if (dom.scannableInputsGrid) dom.scannableInputsGrid.style.display = isScannable ? 'grid' : 'none';
+        });
+      });
+    }
+
+    if (dom.scannableText1) {
+      dom.scannableText1.addEventListener('input', (e) => {
+        state.scannableText1 = e.target.value;
+      });
+    }
+    if (dom.scannableText2) {
+      dom.scannableText2.addEventListener('input', (e) => {
+        state.scannableText2 = e.target.value;
+      });
+    }
+
     // Method selection cards
     const methodCards = document.querySelectorAll('.method-card');
     dom.cryptoMethodInputs.forEach(radio => {
@@ -730,7 +763,9 @@
         state.cryptoMethod = e.target.value;
         methodCards.forEach(card => {
           const r = card.querySelector('input[type="radio"]');
-          card.classList.toggle('active', r && r.checked);
+          if (r && r.name === 'crypto-method') {
+            card.classList.toggle('active', r.checked);
+          }
         });
       });
     });
@@ -752,6 +787,191 @@
   // VISUAL CRYPTOGRAPHY & QR CODE GENERATION ENGINE
   // =========================================================================
   function generateVisualCryptographyQRs() {
+    if (state.scanCompatibility === 'scannable' && typeof qrcode !== 'undefined') {
+      generateScannableQRs();
+    } else {
+      generatePureQRs();
+    }
+  }
+
+  function sampleSecretMatrix(targetG) {
+    if (state.binarizedMatrix && state.binarizedMatrix.length === targetG) {
+      return state.binarizedMatrix;
+    }
+    const offCanvas = document.createElement('canvas');
+    offCanvas.width = targetG;
+    offCanvas.height = targetG;
+    const offCtx = offCanvas.getContext('2d');
+    offCtx.fillStyle = '#ffffff';
+    offCtx.fillRect(0, 0, targetG, targetG);
+    if (state.sourceImage) {
+      drawScaledImage(offCtx, state.sourceImage, 0, 0, targetG, targetG, state.fitMode);
+    }
+    const imgData = offCtx.getImageData(0, 0, targetG, targetG);
+    const pixels = imgData.data;
+    const thresh = state.threshold;
+
+    const matrix = [];
+    for (let y = 0; y < targetG; y++) {
+      matrix[y] = new Uint8Array(targetG);
+      for (let x = 0; x < targetG; x++) {
+        const idx = (y * targetG + x) * 4;
+        const lum = 0.299 * pixels[idx] + 0.587 * pixels[idx + 1] + 0.114 * pixels[idx + 2];
+        let isBlack = lum < thresh;
+        if (state.invert) isBlack = !isBlack;
+        matrix[y][x] = isBlack ? 1 : 0;
+      }
+    }
+    return matrix;
+  }
+
+  function generateScannableQRs() {
+    const N = state.sharesCount;
+    const isOptical = (state.cryptoMethod === 'optical');
+
+    const texts = [];
+    texts.push((dom.scannableText1 && dom.scannableText1.value.trim()) || state.scannableText1);
+    texts.push((dom.scannableText2 && dom.scannableText2.value.trim()) || state.scannableText2);
+    for (let s = 2; s < N; s++) {
+      texts.push(`Partie ${s + 1}/${N} : Clé ${String.fromCharCode(65 + s)}`);
+    }
+
+    function calcMinVersion(txt) {
+      for (let v = 1; v <= 20; v++) {
+        try {
+          const testQr = qrcode(v, 'H');
+          testQr.addData(txt);
+          testQr.make();
+          return v;
+        } catch(e) {}
+      }
+      return 10;
+    }
+
+    let maxMinV = 1;
+    texts.forEach(t => {
+      const v = calcMinVersion(t);
+      if (v > maxMinV) maxMinV = v;
+    });
+
+    const userV = Math.floor((state.gridSize - 17) / 4);
+    const chosenVersion = Math.max(1, Math.min(20, Math.max(maxMinV, userV)));
+
+    const qrInstances = [];
+    for (let s = 0; s < N; s++) {
+      const qrObj = qrcode(chosenVersion, 'H');
+      qrObj.addData(texts[s]);
+      qrObj.make();
+      qrInstances.push(qrObj);
+    }
+
+    const G = qrInstances[0].getModuleCount();
+    const secret = sampleSecretMatrix(G);
+
+    state.generatedSharesData = [];
+    const modSize = 14;
+    const marginMods = 4; // ISO Quiet zone: 4 modules of pure white
+
+    for (let s = 0; s < N; s++) {
+      const canvas = renderScannableShareCanvas(
+        qrInstances[s],
+        s,
+        N,
+        secret,
+        G,
+        modSize,
+        marginMods,
+        isOptical,
+        texts[s]
+      );
+
+      state.generatedSharesData.push({
+        shareIndex: s,
+        canvas: canvas,
+        scannableText: texts[s],
+        isScannable: true
+      });
+    }
+
+    populateSharesGrid();
+  }
+
+  function renderScannableShareCanvas(qrObj, shareIndex, totalShares, secret, G, modSize, marginMods, isOptical, scannedText) {
+    const totalDim = (G + marginMods * 2) * modSize;
+    const canvas = document.createElement('canvas');
+    canvas.width = totalDim;
+    canvas.height = totalDim;
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+
+    // 1. Pure white background (including the vital 4-module quiet zone!)
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, totalDim, totalDim);
+
+    const offset = marginMods * modSize;
+
+    function isStructural(x, y) {
+      if (x <= 8 && y <= 8) return true; // Top-Left finder & separator & format bits
+      if (x >= G - 9 && y <= 8) return true; // Top-Right finder
+      if (x <= 8 && y >= G - 9) return true; // Bottom-Left finder
+      if (x === 6 || y === 6) return true; // Timing patterns
+      return false;
+    }
+
+    for (let gy = 0; gy < G; gy++) {
+      for (let gx = 0; gx < G; gx++) {
+        const isDark = qrObj.isDark(gy, gx);
+        const px = offset + gx * modSize;
+        const py = offset + gy * modSize;
+
+        if (isStructural(gx, gy) || !isOptical) {
+          // Standard solid QR module
+          if (isDark) {
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(px, py, modSize, modSize);
+          }
+        } else {
+          // Data module in Scannable + Optical mode:
+          // Core: central 50% area
+          const coreInset = Math.round(modSize * 0.25);
+          const coreSize = modSize - coreInset * 2;
+
+          if (isDark) {
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(px + coreInset, py + coreInset, coreSize, coreSize);
+          }
+
+          // Corners: Visual Cryptography share
+          const isSecretBlack = (secret[gy] && secret[gy][gx] === 1);
+          const pIdx = Math.floor(Math.random() * 6);
+          const pBase = NS_PATTERNS[pIdx];
+
+          let pCorner;
+          if (shareIndex === 0) {
+            pCorner = pBase;
+          } else {
+            pCorner = isSecretBlack ? complementPattern(pBase) : pBase;
+          }
+
+          const cornerSize = coreInset;
+          ctx.fillStyle = '#000000';
+
+          if (pCorner[0] === 1) ctx.fillRect(px, py, cornerSize, cornerSize);
+          if (pCorner[1] === 1) ctx.fillRect(px + modSize - cornerSize, py, cornerSize, cornerSize);
+          if (pCorner[2] === 1) ctx.fillRect(px, py + modSize - cornerSize, cornerSize, cornerSize);
+          if (pCorner[3] === 1) ctx.fillRect(px + modSize - cornerSize, py + modSize - cornerSize, cornerSize, cornerSize);
+        }
+      }
+    }
+
+    if (state.optAlignmentMarks) {
+      drawRegistrationCrosshairs(ctx, totalDim, offset / 2);
+    }
+
+    return canvas;
+  }
+
+  function generatePureQRs() {
     const G = state.gridSize;
     const secret = state.binarizedMatrix;
     const N = state.sharesCount;
@@ -1090,6 +1310,20 @@
 
       card.appendChild(header);
       card.appendChild(wrap);
+
+      if (item.isScannable) {
+        const scannableBadge = document.createElement('div');
+        scannableBadge.style.cssText = 'width: 100%; font-size: 0.78rem; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 0.5rem 0.75rem; color: #34d399; display: flex; flex-direction: column; gap: 0.2rem;';
+        scannableBadge.innerHTML = `
+          <div style="display:flex; align-items:center; gap:5px; font-weight:600;">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Scannable iPhone & Android
+          </div>
+          <span style="color:#94a3b8; font-size:0.72rem; word-break:break-all;">📱 Scanne : "${item.scannableText}"</span>
+        `;
+        card.appendChild(scannableBadge);
+      }
+
       card.appendChild(actions);
 
       dom.sharesGrid.appendChild(card);
