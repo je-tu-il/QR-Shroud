@@ -3,91 +3,60 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Zero Dependency](https://img.shields.io/badge/Dependencies-Zero%20Build-success.svg)](#)
 [![Privacy: 100% Local](https://img.shields.io/badge/Privacy-100%25%20Offline-brightgreen.svg)](#)
-[![Cryptography](https://img.shields.io/badge/Crypto-Naor--Shamir%20%7C%20XOR-orange.svg)](#)
+[![Cryptography](https://img.shields.io/badge/Crypto-Visual%20Secret%20Sharing-orange.svg)](#)
 
-> **Système de stéganographie et cryptographie visuelle : dissimulez des images et messages secrets dans plusieurs QR codes superposables sans redirection.**
+> **Système de stéganographie et cryptographie visuelle : dissimulez des images et messages secrets dans deux QR codes superposables.**
 
 ---
 
 ## 💡 Le Concept
 
-**QR-Shroud** transforme n'importe quelle image ou message texte en plusieurs QR codes ($X$ parts).
+**QR-Shroud** transforme n'importe quelle image ou message texte en 2 QR codes complémentaires :
 
-* **Isolé** : Chaque QR code présente une texture de grain uniforme (50% de densité) et possède des mires d'alignement officielles. Il ressemble à un QR code standard scannable mais ne dévoile **strictement aucun indice** sur le secret (sécurité inconditionnelle de Shannon).
-* **Superposé** : En alignant précisément les $X$ QR codes (sur écran avec le simulateur ou dans le monde réel sur papier calque / transparents de rétroprojecteur), le message ou l'image secrète réapparaît instantanément par contraste optique direct !
-* **Aucun serveur, aucune URL** : Ces QR codes ne redirigent nulle part, ce sont des clés cryptographiques matérielles physiques.
-
----
-
-## ⚡ Fonctionnalités
-
-- **📥 Entrée universelle** :
-  - Tous formats d'image : PNG, JPG, WebP, GIF, SVG, BMP, AVIF, TIFF, ICO...
-  - Glisser-déposer (Drag & Drop) & Sélection de fichier.
-  - Collage direct depuis le presse-papier (`Ctrl + V`).
-  - Générateur de texte secret (polices lisibles, gras, Impact, centrage automatique).
-  - Presets prêts à l'emploi (Cadenas, Crâne, Smiley, Cœur, Tampon TOP SECRET).
-
-- **🎛️ Conversion Noir & Blanc & Pixellisation** :
-  - Curseur de résolution / taille de grille QR (de 21×21 jusqu'à 89×89).
-  - Algorithme de **tramage Floyd-Steinberg** (diffusion d'erreur, optimal pour les dégradés photo).
-  - **Seuil direct net** (idéal pour logos et textes) et **tramage ordonné Bayer**.
-  - Curseurs de seuil, contraste, luminosité et inversion des couleurs.
-  - Statistiques de densité de pixels en temps réel.
-
-- **📱 Compatibilité Scanner Smartphone (iPhone & Android)** :
-  - **Vrais QR Codes ISO/IEC 18004** : chaque part est un authentique QR code détecté instantanément par l'application Appareil Photo d'iOS et d'Android (avec le cadre jaune de détection).
-  - **Messages ou URLs leurres personnalisables** lors du scan (ex : *"Clé 1/2 : Superposez ce QR avec la Clé 2..."* ou une vraie URL `https://...`).
-  - **Correction d'erreur maximale Level H (30%)** : garantit une lecture fluide et robuste même avec la modulation stéganographique intégrée.
-  - Option également disponible pour le mode académique pur (non scannable).
-
-- **🔒 Moteur Cryptographique & Camouflage** :
-  - **Superposition Physique / Transparence (Naor-Shamir 2×2 subpixels)** : conçu pour l'impression physique. Les blancs laissent passer 50% de lumière, les noirs deviennent 100% opaques. Révélation directe à l'œil nu sans ordinateur.
-  - **Superposition Numérique XOR (1 module = 1 pixel)** : 100% de netteté pour décodage sur écran.
-  - Mires de détection QR officielles 7×7 (Finder Patterns) et lignes de synchronisation (Timing Patterns).
-  - Grain de fond équilibré (50% de densité) pour éviter tout QR code vide.
-  - Croix de calage et de repérage (+) aux 4 coins.
-
-- **🕹️ Simulateur interactif de superposition** :
-  - Glisser-déposer tactile / souris pour tester l'alignement manuel.
-  - Aimantation d'alignement parfait (Snap 100%).
-  - Bouton d'animation de révélation fluide ✨.
-  - Curseurs d'opacité indépendants par couche.
-
-- **📦 Export & Impression** :
-  - **Pack ZIP complet** (avec `jszip.min.js` inclus en local) : PNGs individuels HD + image révélée + guide d'alignement.
-  - Téléchargement individuel de chaque part en PNG HD.
-  - Module d'impression dédié (`Ctrl + P`) :
-    - *1 QR par page A4* (idéal calques / transparents).
-    - *Planche de découpe A4* (avec pointillés de découpe aux ciseaux).
-    - Tailles d'impression réglables (9 cm, 12 cm, 15 cm).
+* **Pris individuellement** : Chaque QR code possède des mires d'alignement officielles (Finder 7×7) et une texture de grain uniforme à 50% qui masque 100% du secret. Il est rigoureusement impossible de deviner le contenu secret en observant une seule part.
+* **Superposés ensemble** : Dès que vous empilez les 2 QR codes (dans le simulateur interactif, ou dans la vraie vie sur du papier calque / transparents face à la lumière), le secret réapparaît immédiatement par contraste optique !
+* **Pourquoi ce n'est pas un lien web ?** : Ce sont des clés cryptographiques optiques matérielles (chiffrement visuel de Naor-Shamir). Le secret est codé directement dans les pixels de la matière, sans passer par un serveur ou une redirection d'URL.
 
 ---
 
-## 🚀 Utilisation immédiate (Zéro installation)
+## ⚡ Parcours en 3 Étapes Simples
 
-Aucun terminal, aucun serveur, aucune compilation (`npm`, `python`, etc.) n'est requis.
+1. **Étape 1 : Choisissez votre secret**
+   * Glissez une image (PNG, JPG, WebP, SVG, GIF, BMP, etc.), collez avec `Ctrl + V`, ou saisissez un texte libre (avec choix de police et centrage).
+   * Ou testez en 1 clic un exemple prédéfini (Cadenas 🔒, TOP SECRET 📁, Smiley 😎, Cœur ❤️, Crâne ☠️).
 
-1. Téléchargez ou clonez le dépôt :
-   ```bash
-   git clone https://github.com/VOTRE_PSEUDO/QR-Shroud.git
-   ```
-2. Double-cliquez sur `index.html`.
-3. L'application tourne immédiatement dans n'importe quel navigateur (Chrome, Firefox, Edge, Safari, Brave...).
+2. **Étape 2 : Réglage du rendu**
+   * Curseur de résolution / niveau de détails (de 25×25 à 65×65).
+   * Curseur de densité (plus clair / plus foncé) et inversion Noir ↔ Blanc.
+   * Tramage d'erreur Floyd-Steinberg appliqué automatiquement pour garantir un contraste optimal.
+
+3. **Étape 3 : Résultat, Simulateur & Export**
+   * **Simulateur interactif en direct** : glissez le QR à la souris ou au doigt pour tester l'alignement manuel, avec boutons *Alignement parfait* et *Animer la révélation ✨*.
+   * **Choix du mode de rendu** :
+     * *Révélation Nette (100% contraste)* : idéal sur écran pour lire sans aucun voile.
+     * *Rendu Physique (Transparence)* : simule l'encre réelle sur papier calque.
+   * **Téléchargement** : PNG HD individuels ou Pack ZIP complet.
+   * **Impression immédiate** : sur feuilles séparées avec croix de repérage (+) pour calques, ou planche avec lignes de découpe.
 
 ---
 
-## 🔬 Les Secrets de la Cryptographie Visuelle
+## 🚀 Utilisation (Zéro installation)
 
-Le projet s'appuie sur la théorie de la **Cryptographie Visuelle** initiée par **Moni Naor** et **Adi Shamir** (Eurocrypt 1994) :
+1. Double-cliquez simplement sur `index.html`.
+2. L'application tourne immédiatement dans n'importe quel navigateur moderne (Chrome, Edge, Firefox, Safari, Brave...).
+3. 100% local et sécurisé : aucune donnée ne quitte votre ordinateur.
 
-Dans un schéma 2-parmi-2 :
-1. Chaque pixel du secret est décomposé en 4 sous-pixels ($2 \times 2$).
-2. Chaque part reçoit aléatoirement 2 sous-pixels noirs et 2 sous-pixels blancs parmi les $\binom{4}{2} = 6$ permutations possibles.
-3. **Pixel blanc** : Les deux parts reçoivent la **même** permutation. Lors de la superposition (opération logique OU optique), la densité reste de 50% (gris translucide).
-4. **Pixel noir** : Les deux parts reçoivent des permutations **complémentaires**. Lors de la superposition, tous les sous-pixels deviennent noirs (100% d'opacité).
+---
 
-L'œil humain perçoit immédiatement le contraste entre le fond gris à 50% et les motifs noirs à 100% !
+## 💡 Comment tester dans le monde réel (Physique)
+
+1. **Option 1 (Idéale) : Papier Calque ou Feuilles Transparentes (Rhodoïd)**
+   * Imprimez la Part #1 et la Part #2 sur du papier calque d'architecte ou du plastique transparent.
+   * Superposez les deux feuilles en alignant les 3 carrés de coin : l'image apparaît par transparence face à la lumière !
+2. **Option 2 : Papier ordinaire 80g + Rétro-éclairage**
+   * Imprimez sur du papier standard, découpez les 2 carrés et tenez-les superposés devant la lampe torche d'un smartphone ou contre une vitre.
+3. **Option 3 : Écran + Papier**
+   * Affichez la Part #1 en grand sur l'écran d'un smartphone et posez la Part #2 imprimée par-dessus.
 
 ---
 

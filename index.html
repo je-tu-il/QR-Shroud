@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QR-Shroud - Stéganographie & Cryptographie Visuelle</title>
+  <title>QR-Shroud - Cryptographie Visuelle par Superposition de QR Codes</title>
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,22 +27,22 @@
           </div>
           <div>
             <h1>QR-Shroud</h1>
-            <p class="subtitle">Stéganographie & partage de secret par superposition de QR codes</p>
+            <p class="subtitle">Cryptographie visuelle : superposez deux QR codes pour révéler votre secret</p>
           </div>
         </div>
         <div class="header-badges">
           <span class="badge"><span class="badge-dot"></span> 100% Hors-Ligne & Sécurisé</span>
-          <span class="badge">Cryptographie Visuelle Naor-Shamir / XOR</span>
+          <span class="badge">Résultat Garanti & Automatisé</span>
         </div>
       </div>
     </header>
 
-    <!-- Stepper Navigation -->
-    <nav class="stepper-nav" aria-label="Étapes du processus">
+    <!-- Stepper Navigation (3 Simple Steps) -->
+    <nav class="stepper-nav" aria-label="Étapes">
       <div class="step-indicator active" data-step="1">
         <div class="step-num">1</div>
         <div class="step-info">
-          <span class="step-title">Source secrète</span>
+          <span class="step-title">Secret</span>
           <span class="step-desc">Image ou Texte</span>
         </div>
       </div>
@@ -50,23 +50,15 @@
       <div class="step-indicator" data-step="2">
         <div class="step-num">2</div>
         <div class="step-info">
-          <span class="step-title">Noir & Blanc</span>
-          <span class="step-desc">Pixellisation & Tramage</span>
+          <span class="step-title">Détails & Contraste</span>
+          <span class="step-desc">Aperçu binaire</span>
         </div>
       </div>
       <div class="step-separator"></div>
       <div class="step-indicator" data-step="3">
         <div class="step-num">3</div>
         <div class="step-info">
-          <span class="step-title">Partage & QR</span>
-          <span class="step-desc">Nombre de parts & Style</span>
-        </div>
-      </div>
-      <div class="step-separator"></div>
-      <div class="step-indicator" data-step="4">
-        <div class="step-num">4</div>
-        <div class="step-info">
-          <span class="step-title">Résultat & Export</span>
+          <span class="step-title">Superposition & Export</span>
           <span class="step-desc">Simulateur & Impression</span>
         </div>
       </div>
@@ -78,8 +70,8 @@
       <!-- ================= STEP 1: SOURCE INPUT ================= -->
       <section class="wizard-step active" id="step-1">
         <div class="section-heading">
-          <h2>1. Choisissez le message ou l'image secrète à cacher</h2>
-          <p>Ce contenu sera converti en matrice binaire et divisé entre plusieurs QR codes d'apparence normale.</p>
+          <h2>1. Choisissez ce que vous souhaitez cacher</h2>
+          <p>Importez une image ou tapez un texte. Le contenu sera divisé en 2 QR codes qui le cacheront totalement.</p>
         </div>
 
         <div class="tab-controls">
@@ -89,11 +81,11 @@
           </button>
           <button class="tab-btn" id="tab-text-btn" type="button">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
-            Saisir un Texte Secret
+            Saisir un Texte
           </button>
         </div>
 
-        <!-- Image Input Tab Pane -->
+        <!-- Image Pane -->
         <div class="tab-pane active" id="pane-image">
           <div class="drop-zone" id="drop-zone">
             <input type="file" id="file-input" accept="image/*,.png,.jpg,.jpeg,.webp,.gif,.svg,.bmp,.ico,.avif,.tiff" hidden>
@@ -105,48 +97,37 @@
                   <line x1="12" y1="3" x2="12" y2="15"></line>
                 </svg>
               </div>
-              <h3>Glissez-déposez votre image ici</h3>
-              <p>Accepte tous formats d'image courants : PNG, JPG, WebP, GIF, SVG, BMP, AVIF, TIFF...</p>
+              <h3>Glissez votre image ici</h3>
+              <p>Accepte tous formats (PNG, JPG, WebP, SVG, GIF, BMP, etc.) ou collez avec <strong>Ctrl + V</strong></p>
               <button type="button" class="btn btn-primary" id="btn-browse">Parcourir les fichiers</button>
-              <span class="drop-hint">Ou collez directement une image depuis votre presse-papier (Ctrl + V)</span>
             </div>
           </div>
 
-          <!-- Preset Samples -->
+          <!-- Presets -->
           <div class="sample-presets">
             <span class="sample-label">Ou essayez un exemple prédéfini :</span>
             <div class="sample-badges">
               <button type="button" class="sample-btn" data-sample="lock">🔒 Cadenas</button>
-              <button type="button" class="sample-btn" data-sample="skull">☠️ Crâne secret</button>
+              <button type="button" class="sample-btn" data-sample="classified">📁 TOP SECRET</button>
               <button type="button" class="sample-btn" data-sample="smile">😎 Smiley</button>
               <button type="button" class="sample-btn" data-sample="heart">❤️ Cœur</button>
-              <button type="button" class="sample-btn" data-sample="classified">📁 "TOP SECRET"</button>
+              <button type="button" class="sample-btn" data-sample="skull">☠️ Crâne</button>
             </div>
           </div>
         </div>
 
-        <!-- Text Input Tab Pane -->
+        <!-- Text Pane -->
         <div class="tab-pane" id="pane-text">
-          <div class="text-input-card">
-            <label for="secret-text-input">Message texte à cacher :</label>
-            <textarea id="secret-text-input" rows="3" placeholder="Tapez votre mot de passe, code, coordonnées GPS ou message secret ici..."></textarea>
-            
+          <div class="text-input-card card">
+            <label for="secret-text-input">Message ou code secret :</label>
+            <textarea id="secret-text-input" rows="3" placeholder="Tapez votre mot de passe, code d'accès ou message secret...">CONFIDENTIEL&#10;CODE: 8492</textarea>
             <div class="text-options-grid">
               <div class="form-group">
-                <label for="font-family">Police d'écriture :</label>
+                <label for="font-family">Police :</label>
                 <select id="font-family">
-                  <option value="sans-serif">Sans-Serif (Moderne & Lisible)</option>
-                  <option value="'JetBrains Mono', monospace">Monospace (Code / Données)</option>
-                  <option value="serif">Serif (Classique)</option>
-                  <option value="impact">Impact (Épais / Fort contraste)</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="font-weight">Style :</label>
-                <select id="font-weight">
-                  <option value="bold" selected>Gras (Recommandé pour la stéganographie)</option>
-                  <option value="900">Ultra Gras</option>
-                  <option value="normal">Normal</option>
+                  <option value="sans-serif">Sans-Serif (Standard)</option>
+                  <option value="'JetBrains Mono', monospace">Monospace (Code / Chiffres)</option>
+                  <option value="Impact, sans-serif">Impact (Épais et lisible)</option>
                 </select>
               </div>
               <div class="form-group">
@@ -158,11 +139,11 @@
                 </select>
               </div>
             </div>
-            <button type="button" class="btn btn-secondary" id="btn-render-text">Mettre à jour l'aperçu du texte</button>
+            <button type="button" class="btn btn-secondary" id="btn-render-text">Mettre à jour le texte</button>
           </div>
         </div>
 
-        <!-- Source Preview Box -->
+        <!-- Source Preview -->
         <div class="preview-box-container" id="source-preview-container" style="display:none;">
           <div class="preview-card">
             <h4>Aperçu de la source chargée :</h4>
@@ -176,56 +157,45 @@
         <div class="step-actions">
           <div></div>
           <button type="button" class="btn btn-primary btn-next" id="btn-goto-step-2" disabled>
-            Étape suivante : Noir & Blanc et Pixellisation
+            Étape 2 : Réglage du rendu
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
         </div>
       </section>
 
-      <!-- ================= STEP 2: BLACK & WHITE / PIXELATION ================= -->
+      <!-- ================= STEP 2: DETAILS & BINARIZATION ================= -->
       <section class="wizard-step" id="step-2">
         <div class="section-heading">
-          <h2>2. Conversion Noir & Blanc et Réglage des Détails</h2>
-          <p>Ajustez le niveau de pixellisation (correspondant à la taille de grille QR) et le contraste pour obtenir un tracé net.</p>
+          <h2>2. Réglage des détails et contraste Noir & Blanc</h2>
+          <p>L'image est automatiquement pixellisée à la résolution d'une matrice QR code.</p>
         </div>
 
         <div class="step-2-layout">
           <!-- Controls Panel -->
           <div class="controls-panel card">
-            <h3 class="panel-title">Paramètres de rendu</h3>
+            <h3 class="panel-title">Réglages simplifiés</h3>
 
-            <!-- Grid Resolution / Details -->
+            <!-- Grid Resolution -->
             <div class="control-item">
               <div class="control-header">
-                <label for="grid-size-slider">Niveau de détails / Résolution de grille :</label>
+                <label for="grid-size-slider">Niveau de détails (Résolution QR) :</label>
                 <span class="control-value" id="grid-size-val">37 × 37</span>
               </div>
-              <input type="range" id="grid-size-slider" min="21" max="89" step="4" value="37">
+              <input type="range" id="grid-size-slider" min="25" max="65" step="4" value="37">
               <div class="control-scale">
-                <span>21×21 (Gros pixels)</span>
+                <span>25×25 (Gros pixels)</span>
                 <span>37×37 (Recommandé)</span>
-                <span>89×89 (Ultra fin)</span>
+                <span>65×65 (Fin)</span>
               </div>
-              <p class="field-hint">Chaque pas correspond à une version standard de QR Code (21, 25, 29, 33, 37, 41, 45, 57...).</p>
-            </div>
-
-            <!-- Binarization Algorithm -->
-            <div class="control-item">
-              <label for="dither-mode">Méthode de conversion Noir & Blanc :</label>
-              <select id="dither-mode">
-                <option value="floyd" selected>Tramage Floyd-Steinberg (Recommandé pour photos et dessins)</option>
-                <option value="threshold">Seuil direct net (Recommandé pour logos et textes)</option>
-                <option value="bayer">Tramage ordonné Bayer (Style graphique rétro)</option>
-              </select>
             </div>
 
             <!-- Threshold Slider -->
-            <div class="control-item" id="threshold-control">
+            <div class="control-item">
               <div class="control-header">
-                <label for="threshold-slider">Seuil Noir & Blanc :</label>
+                <label for="threshold-slider">Densité Noir / Blanc :</label>
                 <span class="control-value" id="threshold-val">128</span>
               </div>
-              <input type="range" id="threshold-slider" min="1" max="254" value="128">
+              <input type="range" id="threshold-slider" min="30" max="225" value="128">
               <div class="control-scale">
                 <span>Plus clair</span>
                 <span>Équilibré (128)</span>
@@ -233,25 +203,7 @@
               </div>
             </div>
 
-            <!-- Contrast -->
-            <div class="control-item">
-              <div class="control-header">
-                <label for="contrast-slider">Contraste :</label>
-                <span class="control-value" id="contrast-val">0</span>
-              </div>
-              <input type="range" id="contrast-slider" min="-100" max="100" value="0">
-            </div>
-
-            <!-- Brightness -->
-            <div class="control-item">
-              <div class="control-header">
-                <label for="brightness-slider">Luminosité :</label>
-                <span class="control-value" id="brightness-val">0</span>
-              </div>
-              <input type="range" id="brightness-slider" min="-100" max="100" value="0">
-            </div>
-
-            <!-- Invert colors -->
+            <!-- Invert switch -->
             <div class="control-item checkbox-item">
               <label class="toggle-switch">
                 <input type="checkbox" id="invert-colors">
@@ -260,36 +212,30 @@
               <span class="toggle-label">Inverser les couleurs (Noir ↔ Blanc)</span>
             </div>
 
-            <!-- Keep aspect ratio mode -->
-            <div class="control-item">
-              <label for="fit-mode">Cadrage dans la grille carrée :</label>
-              <select id="fit-mode">
-                <option value="contain" selected>Conserver les proportions (Bordures blanches)</option>
-                <option value="cover">Remplir tout le carré (Zoomer & Recadrer)</option>
-                <option value="stretch">Étirer (Déformer au carré)</option>
-              </select>
+            <!-- Automatic optimization note -->
+            <div class="info-note">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              <span>Tramage Floyd-Steinberg appliqué automatiquement pour préserver un contraste maximal.</span>
             </div>
           </div>
 
-          <!-- Preview Comparison Panel -->
+          <!-- Preview Panel -->
           <div class="preview-panel card">
-            <h3 class="panel-title">Aperçu binaire de la matrice secrète</h3>
+            <h3 class="panel-title">Aperçu binaire du secret</h3>
             <div class="comparison-view">
               <div class="canvas-block">
-                <span class="canvas-label">Source originale</span>
+                <span class="canvas-label">Source</span>
                 <div class="canvas-wrap mini">
                   <canvas id="step2-source-canvas"></canvas>
                 </div>
               </div>
               <div class="canvas-divider">➔</div>
               <div class="canvas-block highlight">
-                <span class="canvas-label">Matrice pixellisée (Image secrète réelle)</span>
+                <span class="canvas-label">Matrice secrète pixellisée</span>
                 <div class="canvas-wrap main">
                   <canvas id="binarized-canvas"></canvas>
                 </div>
-                <div class="matrix-stats" id="matrix-stats">
-                  Modules : 37 × 37 • Pixels noirs : 48% • Pixels blancs : 52%
-                </div>
+                <div class="matrix-stats" id="matrix-stats">Grille : 37 × 37</div>
               </div>
             </div>
           </div>
@@ -298,204 +244,31 @@
         <div class="step-actions">
           <button type="button" class="btn btn-secondary btn-prev" id="btn-back-to-step-1">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-            Retour : Choix de la source
+            Retour
           </button>
-          <button type="button" class="btn btn-primary btn-next" id="btn-goto-step-3">
-            Étape suivante : Configuration du partage
+          <button type="button" class="btn btn-accent btn-next" id="btn-goto-step-3">
+            Générer les QR Codes et Voir la Superposition
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
         </div>
       </section>
 
-      <!-- ================= STEP 3: SECRET SHARING CONFIG ================= -->
+      <!-- ================= STEP 3: RESULTS, SIMULATOR & EXPORT ================= -->
       <section class="wizard-step" id="step-3">
         <div class="section-heading">
-          <h2>3. Nombre de QR Codes et Paramètres de Cryptographie</h2>
-          <p>Configurez le nombre de parts nécessaires pour révéler l'image et l'apparence des QR codes.</p>
+          <h2>3. QR Codes Générés & Simulateur de Superposition</h2>
+          <p>Chaque QR code pris seul ne révèle rien. Dès qu'ils sont superposés, le secret apparaît immédiatement !</p>
         </div>
 
-        <div class="step-3-grid">
-          <!-- Smartphone Scannability Mode Card -->
-          <div class="card config-card full-width scannable-card">
-            <div class="config-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-            </div>
-            <div class="card-header-with-badge">
-              <h3>Compatibilité Scanner Smartphone (iPhone & Android)</h3>
-              <span class="pill-recommended">Garantie Détection iPhone</span>
-            </div>
-            <p class="card-desc">Choisissez si les QR codes doivent être directement reconnus et scannés par l'appareil photo de votre smartphone :</p>
-
-            <div class="method-choices">
-              <label class="method-card active" id="card-mode-scannable">
-                <input type="radio" name="scan-compatibility" value="scannable" checked>
-                <div class="method-content">
-                  <div class="method-title">
-                    <strong>Vrais QR Codes Scannables par iPhone & Android (Recommandé)</strong>
-                    <span class="badge" style="background:#065f46; color:#34d399; border:none;">✓ Détecté à 100% par l'appareil photo</span>
-                  </div>
-                  <p>Chaque part est un authentique code QR aux normes ISO avec correction d'erreur maximale (Reed-Solomon Level H). Votre iPhone le détecte instantanément avec son cadre jaune et lit le message/URL leurre ci-dessous, tout en permettant la superposition du secret !</p>
-                  
-                  <!-- Decoy texts per share -->
-                  <div class="scannable-inputs-grid" id="scannable-inputs-grid">
-                    <div class="form-group">
-                      <label for="scannable-text-1">Message ou URL scanné par l'iPhone pour la Part 1 :</label>
-                      <input type="text" id="scannable-text-1" value="Clé 1/2 : Superposez ce QR avec la Clé 2 pour révéler le secret !">
-                    </div>
-                    <div class="form-group">
-                      <label for="scannable-text-2">Message ou URL scanné par l'iPhone pour la Part 2 :</label>
-                      <input type="text" id="scannable-text-2" value="Clé 2/2 : Superposez ce QR avec la Clé 1 pour révéler le secret !">
-                    </div>
-                  </div>
-                </div>
-              </label>
-
-              <label class="method-card" id="card-mode-pure">
-                <input type="radio" name="scan-compatibility" value="pure">
-                <div class="method-content">
-                  <div class="method-title">
-                    <strong>Stéganographie Visuelle Pure Naor-Shamir (Non scannable par caméra)</strong>
-                    <span class="pill-tech">Pour calque physique uniquement</span>
-                  </div>
-                  <p>100% de la surface des modules est dédiée au bruit cryptographique binaire. Ce mode ne contient pas de données scannables et ne sera pas reconnu par un smartphone : il est fait exclusivement pour être empilé physiquement sur des feuilles transparentes.</p>
-                </div>
-              </label>
-            </div>
-          </div>
-
-          <!-- Shares Card -->
-          <div class="card config-card">
-            <div class="config-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
-            </div>
-            <h3>Nombre de QR codes requis (Parts)</h3>
-            <p class="card-desc">Combien de QR codes distincts doivent être superposés pour faire apparaître l'image :</p>
-            
-            <div class="shares-selector">
-              <button type="button" class="shares-pill" data-shares="2" aria-pressed="true">
-                <span class="pill-number">2</span>
-                <span class="pill-text">2 QR Codes<br><small>(Idéal calque / 2 transparents)</small></span>
-              </button>
-              <button type="button" class="shares-pill" data-shares="3">
-                <span class="pill-number">3</span>
-                <span class="pill-text">3 QR Codes<br><small>(Sécurité renforcée à 3)</small></span>
-              </button>
-              <button type="button" class="shares-pill" data-shares="4">
-                <span class="pill-number">4</span>
-                <span class="pill-text">4 QR Codes<br><small>(Énigme / Escape Game à 4)</small></span>
-              </button>
-              <div class="custom-shares-wrap">
-                <label for="custom-shares-input">Personnalisé :</label>
-                <input type="number" id="custom-shares-input" min="2" max="8" value="2">
-              </div>
-            </div>
-          </div>
-
-          <!-- Method Card -->
-          <div class="card config-card">
-            <div class="config-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/></svg>
-            </div>
-            <h3>Méthode de superposition</h3>
-            <p class="card-desc">Choisissez selon votre méthode de révélation (Physique sur papier ou Numérique sur écran) :</p>
-            
-            <div class="method-choices">
-              <label class="method-card active">
-                <input type="radio" name="crypto-method" value="optical" checked>
-                <div class="method-content">
-                  <div class="method-title">
-                    <strong>Superposition Physique / Transparence (Naor-Shamir 2×2)</strong>
-                    <span class="pill-recommended">Recommandé pour impression</span>
-                  </div>
-                  <p>Chaque module est divisé en sous-pixels 2×2. En superposant deux feuilles transparentes (papier calque, plastique, rhodoïd), les zones blanches laissent passer 50% de lumière et les zones noires deviennent 100% opaques. Révélation visuelle directe sans aucun ordinateur !</p>
-                </div>
-              </label>
-
-              <label class="method-card">
-                <input type="radio" name="crypto-method" value="xor">
-                <div class="method-content">
-                  <div class="method-title">
-                    <strong>Superposition Numérique XOR (1 module = 1 pixel)</strong>
-                    <span class="pill-tech">Netteté 100%</span>
-                  </div>
-                  <p>Chaque pixel correspond exactement à un module QR code standard. Aucun sous-pixel. Révélation parfaite par décalage numérique, masque d'inversion ou superposition numérique avec le simulateur.</p>
-                </div>
-              </label>
-            </div>
-          </div>
-
-          <!-- QR Appearance & Camouflage Card -->
-          <div class="card config-card full-width">
-            <div class="config-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
-            </div>
-            <h3>Apparence QR Code & Grain de fond</h3>
-            <p class="card-desc">Éléments de camouflage pour faire ressembler chaque part à un authentique QR code bien rempli :</p>
-
-            <div class="qr-options-grid">
-              <label class="option-check">
-                <input type="checkbox" id="opt-finder-patterns" checked>
-                <div class="option-text">
-                  <strong>Mires de détection QR officielles (Finder Patterns 7×7)</strong>
-                  <span>Ajoute les 3 grands carrés emblématiques aux coins (identiques sur toutes les parts pour guider l'alignement parfait).</span>
-                </div>
-              </label>
-
-              <label class="option-check">
-                <input type="checkbox" id="opt-timing-patterns" checked>
-                <div class="option-text">
-                  <strong>Lignes de synchronisation QR (Timing Patterns)</strong>
-                  <span>Lignes pointillées horizontales et verticales qui renforcent l'illusion d'un véritable QR code scannable.</span>
-                </div>
-              </label>
-
-              <label class="option-check">
-                <input type="checkbox" id="opt-alignment-marks" checked>
-                <div class="option-text">
-                  <strong>Repères de découpe et de calage (+)</strong>
-                  <span>Ajoute des croix fines aux 4 coins hors du QR code pour empiler et percer/épingler facilement les feuilles imprimées.</span>
-                </div>
-              </label>
-
-              <label class="option-check">
-                <input type="checkbox" id="opt-balanced-grain" checked>
-                <div class="option-text">
-                  <strong>Grain de fond cryptographique équilibré (50% de densité)</strong>
-                  <span>Garantit qu'aucun QR code n'a de zone vide : chaque part est remplie d'un bruit pseudo-aléatoire uniforme indistinguable.</span>
-                </div>
-              </label>
-            </div>
-          </div>
-        </div>
-
-        <div class="step-actions">
-          <button type="button" class="btn btn-secondary btn-prev" id="btn-back-to-step-2">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-            Retour : Réglages Noir & Blanc
-          </button>
-          <button type="button" class="btn btn-accent btn-next" id="btn-generate">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-            Générer les QR Codes Stéganographiques
-          </button>
-        </div>
-      </section>
-
-      <!-- ================= STEP 4: RESULTS, SIMULATOR & EXPORT ================= -->
-      <section class="wizard-step" id="step-4">
-        <div class="section-heading">
-          <h2>4. QR Codes Générés & Simulateur de Superposition</h2>
-          <p>Voici vos QR codes générés. Seuls, ils ne révèlent rien. Superposés, ils révèlent le message secret !</p>
-        </div>
-
-        <!-- Simulator Section -->
+        <!-- Simulator Card -->
         <div class="simulator-card card">
           <div class="simulator-header">
             <div>
               <h3>Simulateur de superposition interactif</h3>
-              <p>Testez la superposition en direct : glissez la couche avec votre souris ou doigt pour aligner les parts !</p>
+              <p>Faites glisser le QR avec votre souris ou doigt pour tester l'alignement manuel !</p>
             </div>
             <div class="sim-actions">
-              <button type="button" class="btn btn-sm btn-secondary" id="btn-sim-reset">Réinitialiser l'alignement</button>
+              <button type="button" class="btn btn-sm btn-secondary" id="btn-sim-reset">Décaler</button>
               <button type="button" class="btn btn-sm btn-primary" id="btn-sim-snap">Alignement parfait (100%)</button>
               <button type="button" class="btn btn-sm btn-accent" id="btn-sim-animate">Animer la révélation ✨</button>
             </div>
@@ -505,106 +278,113 @@
             <div class="sim-canvas-container" id="sim-canvas-container">
               <canvas id="sim-canvas" width="600" height="600"></canvas>
               <div class="sim-overlay-hint" id="sim-drag-hint">
-                <span>✋ Cliquez et glissez sur le QR pour décaler / aligner manuellement</span>
+                <span>✋ Glissez sur l'image pour tester le décalage</span>
               </div>
             </div>
 
             <div class="sim-controls">
+              <!-- Mode de révélation -->
               <div class="sim-mode-toggle">
-                <label>Mode de rendu du simulateur :</label>
-                <div class="radio-group">
-                  <label>
-                    <input type="radio" name="sim-blend-mode" value="multiply" checked>
-                    <span>Transparence Optique (Multiplication / Encre sur calque)</span>
-                  </label>
-                  <label>
-                    <input type="radio" name="sim-blend-mode" value="xor">
-                    <span>Reconstruction Numérique (XOR pur)</span>
-                  </label>
+                <label>Mode de révélation dans le simulateur :</label>
+                <div class="sim-toggle-buttons">
+                  <button type="button" class="sim-mode-btn active" id="btn-mode-net" data-mode="xor">
+                    <strong>Révélation Nette (100% Contraste)</strong>
+                    <span>Idéal sur écran : le secret apparaît sans aucun voile</span>
+                  </button>
+                  <button type="button" class="sim-mode-btn" id="btn-mode-physique" data-mode="multiply">
+                    <strong>Rendu Physique (Papier calque)</strong>
+                    <span>Simule la superposition optique de deux feuilles transparentes</span>
+                  </button>
                 </div>
               </div>
 
-              <div class="sim-sliders-list" id="sim-sliders-list">
-                <!-- Dynamically populated sliders for each share opacity -->
-              </div>
-
+              <!-- Statut -->
               <div class="sim-stats-bar">
                 <div class="sim-stat">
-                  <span class="stat-label">Décalage X / Y :</span>
+                  <span class="stat-label">Décalage :</span>
                   <span class="stat-val" id="sim-offset-val">X: 0px, Y: 0px</span>
                 </div>
                 <div class="sim-stat">
-                  <span class="stat-label">Statut :</span>
-                  <span class="stat-val tag-success" id="sim-align-status">Parfaitement aligné</span>
+                  <span class="stat-label">Résultat :</span>
+                  <span class="stat-val tag-success" id="sim-align-status">★ Secret révélé !</span>
+                </div>
+              </div>
+
+              <!-- Pedagogical info banner -->
+              <div class="pedagogical-banner">
+                <div class="pedagogical-icon">💡</div>
+                <div class="pedagogical-text">
+                  <strong>Comment ça fonctionne ?</strong>
+                  <span>Ce sont des clés cryptographiques visuelles. Pris séparément, chaque QR code est recouvert d'un grain uniforme à 50% qui masque totalement l'image. C'est l'alignement optique des deux QR codes qui annule le bruit et révèle le secret.</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Individual QR Codes List -->
+        <!-- Individual QR Shares -->
         <div class="shares-display-section">
           <div class="section-subheading">
-            <h3>QR Codes individuels générés (Parts secrètes)</h3>
-            <p>Chacun de ces QR codes contient une portion du secret noyée dans un grain indéchiffrable.</p>
+            <h3>Vos 2 QR Codes individuels</h3>
+            <p>Imprimez-les sur deux feuilles séparées ou téléchargez les images pour votre énigme.</p>
           </div>
           <div class="shares-grid" id="shares-grid">
-            <!-- Dynamically populated cards for each generated QR code -->
+            <!-- Dynamically populated -->
           </div>
         </div>
 
-        <!-- Global Export & Print Toolbar -->
+        <!-- Export Toolbar -->
         <div class="export-card card">
           <div class="export-header">
             <h3>Téléchargement et Impression</h3>
-            <p>Choisissez votre méthode de diffusion : fichiers PNG HD, archive ZIP complète, ou impression papier immédiate.</p>
+            <p>Exportez en haute définition ou imprimez directement avec repères de centrage.</p>
           </div>
 
           <div class="export-buttons-grid">
             <button type="button" class="btn btn-accent btn-large" id="btn-download-zip">
               <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
               Télécharger le Pack Complet (ZIP)
-              <span class="btn-subtext">Tous les QR codes HD + Image révélée + Guide d'alignement</span>
+              <span class="btn-subtext">Contient les 2 QR codes HD + l'image révélée + le guide</span>
             </button>
 
             <button type="button" class="btn btn-primary btn-large" id="btn-print-dialog">
               <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
               Imprimer les QR Codes
-              <span class="btn-subtext">Feuilles transparentes individuelles ou planche A4 avec repères</span>
+              <span class="btn-subtext">Mise en page optimisée avec croix de calage (+)</span>
             </button>
           </div>
 
-          <!-- Physical Tips Accordion -->
+          <!-- Physical Tips -->
           <div class="physical-tips">
-            <h4>💡 Comment tester la superposition dans le monde réel ?</h4>
+            <h4>Astuces pour le monde réel (Papier & Lumière) :</h4>
             <div class="tips-grid">
               <div class="tip-card">
-                <span class="tip-number">Option 1</span>
-                <strong>Papier Calque ou Rhodoïd (Idéal)</strong>
-                <p>Imprimez chaque QR code sur une feuille transparente ou du papier calque d'architecte. Superposez les deux feuilles face à une fenêtre ou une lampe : le message surgit comme par magie !</p>
+                <span class="tip-number">1. Papier Calque</span>
+                <strong>Le plus bluffant</strong>
+                <p>Imprimez chaque QR code sur du papier calque ou transparent. Superposez-les face à une fenêtre ou une lampe : l'image apparaît instantanément !</p>
               </div>
               <div class="tip-card">
-                <span class="tip-number">Option 2</span>
-                <strong>Papier classique 80g + Rétro-éclairage</strong>
-                <p>Pas de transparent ? Imprimez sur du papier ordinaire fin. Découpez les deux carrés, superposez-les rigoureusement et tenez-les contre une lampe torche ou la vitre d'une fenêtre bien éclairée.</p>
+                <span class="tip-number">2. Papier 80g + Lampe</span>
+                <strong>Sans matériel spécial</strong>
+                <p>Imprimez sur papier ordinaire, découpez les 2 carrés et tenez-les superposés devant la lampe torche d'un smartphone.</p>
               </div>
               <div class="tip-card">
-                <span class="tip-number">Option 3</span>
-                <strong>Écran smartphone + Papier</strong>
-                <p>Affichez un QR code sur l'écran d'un smartphone à luminosité maximale, et posez par-dessus l'autre QR imprimé sur papier ordinaire. La lumière traversera la feuille !</p>
+                <span class="tip-number">3. Écran + Papier</span>
+                <strong>Rapide à tester</strong>
+                <p>Affichez le QR #1 en grand sur l'écran d'un smartphone et posez le QR #2 imprimé sur papier par-dessus.</p>
               </div>
             </div>
           </div>
         </div>
 
         <div class="step-actions">
-          <button type="button" class="btn btn-secondary btn-prev" id="btn-back-to-step-3">
+          <button type="button" class="btn btn-secondary btn-prev" id="btn-back-to-step-2">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-            Modifier la configuration
+            Modifier les réglages
           </button>
           <button type="button" class="btn btn-secondary" id="btn-restart">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
-            Recommencer avec une autre image
+            Recommencer avec un autre secret
           </button>
         </div>
       </section>
@@ -619,29 +399,29 @@
           <button type="button" class="modal-close" id="btn-close-print-modal">&times;</button>
         </div>
         <div class="modal-body">
-          <p>Sélectionnez la mise en page selon vos supports d'impression :</p>
+          <p>Sélectionnez la mise en page selon votre papier :</p>
           <div class="print-mode-options">
             <label class="print-opt-card active">
               <input type="radio" name="print-layout" value="separated" checked>
               <div class="print-opt-content">
                 <strong>1 QR Code par page A4 (Recommandé pour calque / transparents)</strong>
-                <p>Imprime chaque part au centre d'une feuille séparée avec croix de repérage identiques pour empiler sans découper.</p>
+                <p>Imprime chaque part au centre d'une feuille séparée avec croix de repérage pour empiler sans découper.</p>
               </div>
             </label>
             <label class="print-opt-card">
               <input type="radio" name="print-layout" value="grid">
               <div class="print-opt-content">
-                <strong>Planche de découpe (Tous les QR sur 1 seule feuille A4)</strong>
-                <p>Économique sur papier classique. Affiche tous les QR côte à côte avec traits de coupe en pointillés.</p>
+                <strong>Planche de découpe (Les 2 QR sur 1 seule feuille A4)</strong>
+                <p>Économique sur papier classique avec pointillés pour découper aux ciseaux.</p>
               </div>
             </label>
           </div>
           <div class="print-settings">
-            <label for="print-size-select">Taille d'impression du QR :</label>
+            <label for="print-size-select">Taille d'impression :</label>
             <select id="print-size-select">
-              <option value="120">12 cm × 12 cm (Idéal pour manipulation aisée)</option>
-              <option value="90">9 cm × 9 cm (Format moyen standard)</option>
-              <option value="150">15 cm × 15 cm (Grand format haute lisibilité)</option>
+              <option value="120">12 cm × 12 cm (Taille idéale)</option>
+              <option value="90">9 cm × 9 cm (Compact)</option>
+              <option value="150">15 cm × 15 cm (Grand format)</option>
             </select>
           </div>
         </div>
@@ -655,18 +435,17 @@
       </div>
     </div>
 
-    <!-- Print Dedicated Container (Hidden on screen, visible on @media print) -->
+    <!-- Print Container (Hidden on screen, visible on @media print) -->
     <div id="print-container"></div>
 
     <!-- Footer -->
     <footer class="app-footer">
-      <p>Stéganographie & Cryptographie Visuelle par QR Code • Traitement 100% local dans votre navigateur (aucune donnée envoyée sur serveur)</p>
+      <p>QR-Shroud • Cryptographie Visuelle par Superposition • Traitement 100% local dans votre navigateur</p>
     </footer>
   </div>
 
   <!-- Local Libraries -->
   <script src="jszip.min.js"></script>
-  <script src="qrcode.min.js"></script>
   <!-- Application Core Script -->
   <script src="app.js"></script>
 </body>
