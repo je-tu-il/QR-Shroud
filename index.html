@@ -70,23 +70,77 @@
       <!-- ================= STEP 1: SOURCE INPUT ================= -->
       <section class="wizard-step active" id="step-1">
         <div class="section-heading">
-          <h2>1. Choisissez ce que vous souhaitez cacher</h2>
-          <p>Importez une image ou tapez un texte. Le contenu sera divisé en 2 QR codes qui le cacheront totalement.</p>
+          <h2>1. Choisissez votre type de secret</h2>
+          <p>Optez pour le Coffre-fort Web (4 clés pour révéler un texte) ou le Pochoir Visuel (superposition d'images).</p>
         </div>
 
         <div class="tab-controls">
-          <button class="tab-btn active" id="tab-image-btn" type="button">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-            Importer une Image
+          <button class="tab-btn active" id="tab-vault-btn" type="button">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Texte Secret & Redirection (4 Clés)
+            <span style="font-size: 0.72rem; background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 2px 6px; border-radius: 4px; margin-left: 4px;">Recommandé</span>
           </button>
-          <button class="tab-btn" id="tab-text-btn" type="button">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
-            Saisir un Texte
+          <button class="tab-btn" id="tab-image-btn" type="button">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            Image / Pochoir Visuel
           </button>
         </div>
 
+        <!-- Vault Pane (Text & 4 Keys Redirection) -->
+        <div class="tab-pane active" id="pane-vault">
+          <div class="text-input-card card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem; flex-wrap:wrap; gap:0.5rem;">
+              <label for="vault-text-input" style="font-weight:700; color:var(--text-main);">Votre texte ou message secret :</label>
+              <span style="font-size:0.78rem; color:#34d399;">✓ Le texte sera 100% net et lisible sur smartphone</span>
+            </div>
+            <textarea id="vault-text-input" rows="3" placeholder="Tapez votre mot de passe, code d'accès, énigme ou message secret...">CONFIDENTIEL : Le mot de passe du coffre est ALPHA-8492</textarea>
+            
+            <div class="sample-presets" style="margin-top:0.75rem;">
+              <span class="sample-label">Exemples rapides :</span>
+              <div class="sample-badges">
+                <button type="button" class="sample-btn" id="btn-sample-pwd">🔑 Mot de passe</button>
+                <button type="button" class="sample-btn" id="btn-sample-geo">📍 Coordonnées GPS</button>
+                <button type="button" class="sample-btn" id="btn-sample-bday">💌 Message secret</button>
+              </div>
+            </div>
+
+            <div style="margin-top:1.25rem; border-top:1px solid var(--border-color); padding-top:1rem;">
+              <label style="font-weight:700; color:var(--text-main); display:block; margin-bottom:0.25rem;">
+                Nombre de QR codes requis pour révéler le secret :
+              </label>
+              <div class="pill-group" id="shares-count-pills">
+                <button type="button" class="pill-btn" data-shares="2">2 QR Codes</button>
+                <button type="button" class="pill-btn" data-shares="3">3 QR Codes</button>
+                <button type="button" class="pill-btn active" data-shares="4">
+                  ★ 4 QR Codes (Recommandé)
+                </button>
+              </div>
+              <p style="font-size:0.8rem; color:var(--text-muted); margin-top:0.4rem;">
+                Chaque QR code contient une part chiffrée unique. Le message ne peut être lu que lorsque les 4 clés sont combinées.
+              </p>
+            </div>
+
+            <!-- Vault URL Setting -->
+            <div style="margin-top:1rem; border-top:1px solid var(--border-color); padding-top:1rem;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <label for="vault-url-input" style="font-size:0.85rem; font-weight:600; color:var(--text-muted);">
+                  URL de redirection (Page de révélation) :
+                </label>
+                <a href="reveal.html" target="_blank" class="link-test-btn" id="btn-test-reveal-page">
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                  Voir reveal.html
+                </a>
+              </div>
+              <input type="url" id="vault-url-input" value="https://je-tu-il.github.io/QR-Shroud/reveal.html" style="width:100%; margin-top:0.4rem; padding:0.65rem 0.85rem; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-input); color:var(--text-main); font-size:0.85rem;">
+              <span style="font-size:0.75rem; color:var(--text-dim); display:block; margin-top:0.25rem;">
+                📱 Les smartphones qui scannent les QR codes ouvriront cette page pour enregistrer leurs clés.
+              </span>
+            </div>
+          </div>
+        </div>
+
         <!-- Image Pane -->
-        <div class="tab-pane active" id="pane-image">
+        <div class="tab-pane" id="pane-image">
           <div class="drop-zone" id="drop-zone">
             <input type="file" id="file-input" accept="image/*,.png,.jpg,.jpeg,.webp,.gif,.svg,.bmp,.ico,.avif,.tiff" hidden>
             <div class="drop-zone-content">
@@ -116,37 +170,10 @@
           </div>
         </div>
 
-        <!-- Text Pane -->
-        <div class="tab-pane" id="pane-text">
-          <div class="text-input-card card">
-            <label for="secret-text-input">Message ou code secret :</label>
-            <textarea id="secret-text-input" rows="3" placeholder="Tapez votre mot de passe, code d'accès ou message secret...">CONFIDENTIEL&#10;CODE: 8492</textarea>
-            <div class="text-options-grid">
-              <div class="form-group">
-                <label for="font-family">Police :</label>
-                <select id="font-family">
-                  <option value="sans-serif">Sans-Serif (Standard)</option>
-                  <option value="'JetBrains Mono', monospace">Monospace (Code / Chiffres)</option>
-                  <option value="Impact, sans-serif">Impact (Épais et lisible)</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="text-align">Alignement :</label>
-                <select id="text-align">
-                  <option value="center" selected>Centré</option>
-                  <option value="left">Gauche</option>
-                  <option value="right">Droite</option>
-                </select>
-              </div>
-            </div>
-            <button type="button" class="btn btn-secondary" id="btn-render-text">Mettre à jour le texte</button>
-          </div>
-        </div>
-
-        <!-- Source Preview -->
+        <!-- Source Preview for Image Mode -->
         <div class="preview-box-container" id="source-preview-container" style="display:none;">
           <div class="preview-card">
-            <h4>Aperçu de la source chargée :</h4>
+            <h4>Aperçu de l'image source :</h4>
             <div class="canvas-wrap">
               <canvas id="source-canvas"></canvas>
             </div>
@@ -156,8 +183,8 @@
 
         <div class="step-actions">
           <div></div>
-          <button type="button" class="btn btn-primary btn-next" id="btn-goto-step-2" disabled>
-            Étape 2 : Réglage du rendu
+          <button type="button" class="btn btn-primary btn-next" id="btn-goto-step-2">
+            Étape 2 : Réglages & Confirmation
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
         </div>
@@ -166,14 +193,48 @@
       <!-- ================= STEP 2: DETAILS & BINARIZATION ================= -->
       <section class="wizard-step" id="step-2">
         <div class="section-heading">
-          <h2>2. Réglage des détails et contraste Noir & Blanc</h2>
-          <p>L'image est automatiquement pixellisée à la résolution d'une matrice QR code.</p>
+          <h2>2. Vérification et confirmation</h2>
+          <p id="step-2-desc">Vérifiez les paramètres avant de générer les QR codes finaux.</p>
         </div>
 
-        <div class="step-2-layout">
+        <!-- Vault Mode Summary Panel -->
+        <div id="step2-vault-panel" class="card vault-summary-card">
+          <h3 class="panel-title">Récapitulatif du Coffre-fort Numérique</h3>
+          <div>
+            <label style="font-size:0.85rem; color:var(--text-muted); font-weight:600; display:block; margin-bottom:0.4rem;">Texte secret qui sera révélé :</label>
+            <div class="vault-text-preview" id="vault-summary-text"></div>
+          </div>
+
+          <div class="vault-info-grid">
+            <div class="vault-info-item">
+              <span class="vault-info-label">Nombre de QR Codes</span>
+              <span class="vault-info-val" id="vault-summary-shares">4 QR Codes</span>
+            </div>
+            <div class="vault-info-item">
+              <span class="vault-info-label">Cryptographie</span>
+              <span class="vault-info-val" style="color:#34d399;">XOR One-Time Pad (Incassable)</span>
+            </div>
+            <div class="vault-info-item">
+              <span class="vault-info-label">Scannabilité Smartphone</span>
+              <span class="vault-info-val">100% iPhone & Android</span>
+            </div>
+            <div class="vault-info-item">
+              <span class="vault-info-label">Page de déverrouillage</span>
+              <span class="vault-info-val" style="font-size:0.8rem; word-break:break-all;" id="vault-summary-url"></span>
+            </div>
+          </div>
+
+          <div class="info-note" style="margin-top:0.5rem;">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <span>Chaque QR code contient une part chiffrée aléatoire. Tant que les clés ne sont pas réunies sur la page, il est mathématiquement impossible de reconstituer le moindre mot du secret.</span>
+          </div>
+        </div>
+
+        <!-- Image Mode Panel -->
+        <div id="step2-image-panel" class="step-2-layout" style="display:none;">
           <!-- Controls Panel -->
           <div class="controls-panel card">
-            <h3 class="panel-title">Réglages simplifiés</h3>
+            <h3 class="panel-title">Réglages du pochoir</h3>
 
             <!-- Grid Resolution -->
             <div class="control-item">
@@ -212,7 +273,6 @@
               <span class="toggle-label">Inverser les couleurs (Noir ↔ Blanc)</span>
             </div>
 
-            <!-- Automatic optimization note -->
             <div class="info-note">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
               <span>Tramage Floyd-Steinberg appliqué automatiquement pour préserver un contraste maximal.</span>
@@ -247,7 +307,7 @@
             Retour
           </button>
           <button type="button" class="btn btn-accent btn-next" id="btn-goto-step-3">
-            Générer les QR Codes et Voir la Superposition
+            Générer les QR Codes
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
         </div>
@@ -256,12 +316,37 @@
       <!-- ================= STEP 3: RESULTS, SIMULATOR & EXPORT ================= -->
       <section class="wizard-step" id="step-3">
         <div class="section-heading">
-          <h2>3. QR Codes Générés & Simulateur de Superposition</h2>
-          <p>Chaque QR code pris seul ne révèle rien. Dès qu'ils sont superposés, le secret apparaît immédiatement !</p>
+          <h2>3. QR Codes Générés & Simulateur</h2>
+          <p id="step-3-desc">Scannez vos QR codes avec votre smartphone ou testez la combinaison directement ci-dessous !</p>
         </div>
 
-        <!-- Simulator Card -->
-        <div class="simulator-card card">
+        <!-- Vault Mode Simulator (Interactive Key Combiner) -->
+        <div class="card vault-simulator-card" id="step3-vault-simulator">
+          <div class="simulator-header">
+            <div>
+              <h3>Simulateur de Coffre-fort Numérique (Combinaison des Clés)</h3>
+              <p>Activez ou désactivez les clés pour tester la reconstitution en direct :</p>
+            </div>
+            <div class="sim-actions">
+              <a href="reveal.html" target="_blank" class="btn btn-sm btn-primary" id="btn-open-mobile-reveal">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                Tester sur reveal.html
+              </a>
+            </div>
+          </div>
+
+          <div class="vault-slots-container" id="vault-sim-slots">
+            <!-- Dynamically populated with toggle buttons for Clé 1, 2, 3, 4 -->
+          </div>
+
+          <!-- Secret text revealed box or locked notice -->
+          <div id="vault-sim-result-box">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Image Mode Simulator (Drag & Overlay) -->
+        <div class="simulator-card card" id="step3-image-simulator" style="display:none;">
           <div class="simulator-header">
             <div>
               <h3>Simulateur de superposition interactif</h3>
@@ -310,7 +395,6 @@
                 </div>
               </div>
 
-              <!-- Pedagogical info banner -->
               <div class="pedagogical-banner">
                 <div class="pedagogical-icon">💡</div>
                 <div class="pedagogical-text">
@@ -325,8 +409,8 @@
         <!-- Individual QR Shares -->
         <div class="shares-display-section">
           <div class="section-subheading">
-            <h3>Vos 2 QR Codes individuels</h3>
-            <p>Imprimez-les sur deux feuilles séparées ou téléchargez les images pour votre énigme.</p>
+            <h3 id="shares-grid-title">Vos QR Codes individuels</h3>
+            <p id="shares-grid-desc">Scannez-les avec un smartphone ou téléchargez-les individuellement.</p>
           </div>
           <div class="shares-grid" id="shares-grid">
             <!-- Dynamically populated -->
