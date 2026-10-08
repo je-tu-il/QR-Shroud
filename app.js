@@ -134,11 +134,22 @@
     return bytesToBase64Url(encoder.encode(str));
   }
 
+  function generateDataUriHtml(text) {
+    const cleanText = text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+    return `data:text/html;charset=utf-8,<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>QR-Shroud</title><style>body{margin:0;background:#090d16;color:#f1f5f9;font-family:-apple-system,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;box-sizing:border-box}.c{background:#161f30;border:1px solid #38bdf8;border-radius:14px;padding:24px;max-width:340px;width:100%;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,0.5)}h2{color:#38bdf8;margin:0 0 12px;font-size:1.2rem}p{font-size:1.1rem;line-height:1.5;margin:0 0 16px;color:#fff;word-break:break-word}button{background:#10b981;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-weight:700;cursor:pointer}</style></head><body><div class="c"><h2>🔓 Message Révélé</h2><p id="t">${cleanText}</p><button onclick="navigator.clipboard.writeText(document.getElementById('t').innerText);this.innerText='Copié !'">Copier</button></div></body></html>`;
+  }
+
   function getTargetPayload() {
     if (state.destMode === 'web') {
       const b64 = utf8ToBase64Url(state.text);
       const base = state.baseUrl.trim() || 'https://je-tu-il.github.io/QR-Shroud/reveal.html';
       return `${base}#msg=b64:${b64}`;
+    } else if (state.destMode === 'data_uri') {
+      return generateDataUriHtml(state.text);
     }
     return state.text;
   }
@@ -236,7 +247,9 @@
 
     state.targetQR.canvas = canvas;
     if (state.destMode === 'web') {
-      dom.targetQrSpecs.textContent = `Grille : ${G} × ${G} modules (Version ${model.version}) • Page Web Confidentielle`;
+      dom.targetQrSpecs.textContent = `Grille : ${G} × ${G} modules (Version ${model.version}) • Page Web Hébergée (reveal.html)`;
+    } else if (state.destMode === 'data_uri') {
+      dom.targetQrSpecs.textContent = `Grille : ${G} × ${G} modules (Version ${model.version}) • Mini-Site Embarqué (data:text/html)`;
     } else {
       dom.targetQrSpecs.textContent = `Grille : ${G} × ${G} modules (Version ${model.version}) • Texte Brut`;
     }
@@ -331,6 +344,11 @@
             if (dom.urlConfigBox) dom.urlConfigBox.style.display = 'flex';
             if (dom.destinationModeHint) {
               dom.destinationModeHint.innerHTML = `✓ <strong>Évite la recherche Google :</strong> L'appareil photo de votre smartphone ouvre directement la page HTML <code>reveal.html</code> qui affiche votre texte en grand sans passer par un moteur de recherche.`;
+            }
+          } else if (state.destMode === 'data_uri') {
+            if (dom.urlConfigBox) dom.urlConfigBox.style.display = 'none';
+            if (dom.destinationModeHint) {
+              dom.destinationModeHint.innerHTML = `💾 <strong>Site 100% Embarqué (Data URI) :</strong> Le mini-site web HTML/CSS complet est contenu dans le QR code (aucun serveur externe).<br><span style="color:#f59e0b; font-size:0.75rem;">⚠️ Note iOS : L'appareil photo natif de l'iPhone bloque l'ouverture automatique des URLs data: par sécurité (nécessite de copier/coller dans Safari ou un scanner tiers).</span>`;
             }
           } else {
             if (dom.urlConfigBox) dom.urlConfigBox.style.display = 'none';
