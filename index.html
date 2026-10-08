@@ -91,6 +91,31 @@
               </div>
             </div>
 
+            <!-- Destination / Lecture Format Selector -->
+            <div style="margin-top:1.25rem; border-top:1px solid var(--border-color); padding-top:1rem;">
+              <label style="font-weight:700; color:var(--text-main); display:block; margin-bottom:0.35rem;">
+                Destination au scan (pour smartphone) :
+              </label>
+              <div class="pill-group" id="destination-mode-pills">
+                <button type="button" class="pill-btn active" data-dest="web" id="btn-dest-web">
+                  🌐 Page Web Confidentielle (Recommandé)
+                </button>
+                <button type="button" class="pill-btn" data-dest="text" id="btn-dest-text">
+                  📝 Texte Brut (Hors-ligne)
+                </button>
+              </div>
+              <p id="destination-mode-hint" style="font-size:0.8rem; color:var(--text-muted); margin-top:0.4rem;">
+                ✓ <strong>Évite la recherche Google :</strong> L'appareil photo de votre smartphone ouvre directement la page HTML <code>reveal.html</code> qui affiche votre texte en grand sans passer par un moteur de recherche.
+              </p>
+              
+              <!-- URL Config (discreet) -->
+              <div id="url-config-box" style="margin-top:0.6rem; display:flex; flex-direction:column; gap:0.3rem;">
+                <label for="base-url-input" style="font-size:0.75rem; color:var(--text-dim);">URL de la page de lecture :</label>
+                <input type="text" id="base-url-input" value="https://je-tu-il.github.io/QR-Shroud/reveal.html" style="font-size:0.78rem; padding:0.4rem 0.6rem; border-radius:6px; border:1px solid var(--border-color); background:rgba(0,0,0,0.3); color:#38bdf8;">
+                <span style="font-size:0.72rem; color:var(--text-dim);">🔒 100% Privé : Le secret est encodé dans le fragment <code>#msg=</code> (côté client uniquement, jamais envoyé au serveur).</span>
+              </div>
+            </div>
+
             <!-- Shares Count Selector -->
             <div style="margin-top:1.25rem; border-top:1px solid var(--border-color); padding-top:1rem;">
               <label style="font-weight:700; color:var(--text-main); display:block; margin-bottom:0.25rem;">
@@ -187,20 +212,38 @@
             </div>
           </div>
 
-          <!-- Mode de superposition -->
+          <!-- Mode de superposition et comportement des parts -->
           <div style="margin-top:1rem; border-top:1px solid var(--border-color); padding-top:1rem;">
             <label style="font-weight:700; color:var(--text-main); display:block; margin-bottom:0.5rem;">
-              Mode de révélation souhaité :
+              Comportement des QR codes découpés :
             </label>
             <div class="sim-toggle-buttons">
-              <button type="button" class="sim-mode-btn active" id="btn-step2-mode-xor">
-                <strong>Révélation Écran / Simulateur (XOR)</strong>
-                <span>Chaque part est recouverte d'un bruit uniforme. La superposition annule le bruit et fait jaillir le vrai QR code.</span>
+              <button type="button" class="sim-mode-btn active" id="btn-step2-mode-scannable">
+                <strong>📱 Clés 100% Scannables (Recommandé)</strong>
+                <span>Chaque QR code individuel est <strong>scannable par smartphone</strong> (indique clé 1/4, 2/4...). L'alignement parfait dans le simulateur ou la combinaison des clés révèle le vrai QR code cible !</span>
               </button>
               <button type="button" class="sim-mode-btn" id="btn-step2-mode-or">
-                <strong>Papier Calque / Transparents (OR Physique)</strong>
-                <span>Les modules noirs sont répartis sur les feuilles transparentes. En les empilant face à la lumière, elles reforment le QR code.</span>
+                <strong>⬛ Calques Physiques purs (Papier Transparent / Rétroéclairage)</strong>
+                <span>Les modules noirs sont répartis sur des feuilles transparentes. En les empilant face à la lumière, elles reforment le QR code cible.</span>
               </button>
+            </div>
+
+            <!-- Intermediate scan payload selector -->
+            <div id="intermediate-payload-box" style="margin-top:0.75rem; background:rgba(255,255,255,0.03); padding:0.75rem 1rem; border-radius:8px; border:1px solid var(--border-color);">
+              <label style="font-size:0.8rem; font-weight:700; color:var(--text-main); display:block; margin-bottom:0.35rem;">
+                Action si un QR code est scanné seul :
+              </label>
+              <div class="pill-group" id="intermediate-scan-pills">
+                <button type="button" class="pill-btn active" data-payload="status" id="btn-payload-status">
+                  🔑 Statut de la clé (1/4, 2/4...)
+                </button>
+                <button type="button" class="pill-btn" data-payload="empty" id="btn-payload-empty">
+                  ⚪ Vide / Neutre (Ne renvoie rien)
+                </button>
+              </div>
+              <p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.3rem;">
+                Permet à l'appareil photo de détecter un vrai QR code sans révéler le message secret.
+              </p>
             </div>
           </div>
         </div>

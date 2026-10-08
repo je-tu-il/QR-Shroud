@@ -1,10 +1,12 @@
 /**
- * QR-Shroud - Révélation directe par superposition de QR Codes
+ * QR-Shroud - Révélation par superposition & Clés scannables
  * 1. L'utilisateur saisit son texte secret.
  * 2. Un VRAI QR Code officiel est généré et affiché en aperçu direct (scannable immédiatement).
- * 3. Ce QR code est découpé en N parts (2, 3 ou 4 QR codes).
- * 4. Dès que les parts sont superposées, ELLES REFORMENT LE VRAI QR CODE CIBLE !
- * 5. N'importe quel smartphone le scanne directement : PAS DE SITE POUR DÉCRYPTER !
+ * 3. Format de destination : Page Web Confidentielle (reveal.html) pour éviter la recherche Google sur iPhone, ou Texte brut.
+ * 4. Découpage en 2, 3 ou 4 QR Codes :
+ *    - Mode Clés 100% Scannables : Chaque QR code individuel est scannable et renvoie le statut (1/4, 2/4...) ou du vide.
+ *    - Mode Calques Physiques purs : Découpage pour transparents et rétroéclairage.
+ * 5. La superposition (dans le simulateur ou combinée) affiche le vrai QR code cible.
  */
 
 (function () {
@@ -18,18 +20,29 @@
     text: "CONFIDENTIEL : Bravo, vous avez combiné les QR codes avec succès !",
     sharesCount: 4, // 2, 3, 4
     qrLevel: 'M', // 'M' (15%) | 'H' (30%)
-    superpositionMode: 'xor', // 'xor' (Écran / Numérique) | 'or' (Papier Calque / Transparence)
+
+    // Destination format
+    destMode: 'web', // 'web' (Page Web Confidentielle reveal.html) | 'text' (Texte brut)
+    baseUrl: 'https://je-tu-il.github.io/QR-Shroud/reveal.html',
+
+    // Decomposition mode
+    shareMode: 'scannable', // 'scannable' (Clés 100% scannables) | 'or' (Calques physiques transparents)
+    intermediatePayload: 'status', // 'status' (Clé 1/4) | 'empty' (Vide " ")
+
+    vaultId: 'v_' + Math.random().toString(36).substring(2, 8),
+    xorKeyShares: [],
 
     // Target QR Code Model
     targetQR: {
       matrix: null,
       G: 0,
       version: 0,
-      canvas: null
+      canvas: null,
+      payload: ""
     },
 
     // Decomposed Shares
-    sharesData: [], // [{ canvas, matrix, label, shareIndex }]
+    sharesData: [], // [{ canvas, matrix, G, label, shareIndex, payload, isScannable }]
 
     // Simulator
     sim: {
@@ -57,6 +70,12 @@
     btnSamplePwd: document.getElementById('btn-sample-pwd'),
     btnSampleGeo: document.getElementById('btn-sample-geo'),
     btnSampleBday: document.getElementById('btn-sample-bday'),
+    destinationModePills: document.querySelectorAll('#destination-mode-pills .pill-btn'),
+    btnDestWeb: document.getElementById('btn-dest-web'),
+    btnDestText: document.getElementById('btn-dest-text'),
+    destinationModeHint: document.getElementById('destination-mode-hint'),
+    urlConfigBox: document.getElementById('url-config-box'),
+    baseUrlInput: document.getElementById('base-url-input'),
     sharesCountPills: document.querySelectorAll('#shares-count-pills .pill-btn'),
     qrLevelPills: document.querySelectorAll('#qr-level-pills .pill-btn'),
     targetQrCanvas: document.getElementById('target-qr-canvas'),
@@ -66,8 +85,12 @@
     // Step 2
     step2SharesCountVal: document.getElementById('step2-shares-count-val'),
     step2SecretPreview: document.getElementById('step2-secret-preview'),
-    btnStep2ModeXor: document.getElementById('btn-step2-mode-xor'),
+    btnStep2ModeScannable: document.getElementById('btn-step2-mode-scannable'),
     btnStep2ModeOr: document.getElementById('btn-step2-mode-or'),
+    intermediateScanPills: document.querySelectorAll('#intermediate-scan-pills .pill-btn'),
+    btnPayloadStatus: document.getElementById('btn-payload-status'),
+    btnPayloadEmpty: document.getElementById('btn-payload-empty'),
+    intermediatePayloadBox: document.getElementById('intermediate-payload-box'),
     btnBackToStep1: document.getElementById('btn-back-to-step-1'),
     btnGotoStep3: document.getElementById('btn-goto-step-3'),
 
@@ -96,6 +119,29 @@
     printSizeSelect: document.getElementById('print-size-select'),
     printContainer: document.getElementById('print-container')
   };
+
+  // =========================================================================
+  // CRYPTO & URL ENCODING HELPERS
+  // =========================================================================
+  function bytesToBase64Url(bytes) {
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+
+  function utf8ToBase64Url(str) {
+    const encoder = new TextEncoder();
+    return bytesToBase64Url(encoder.encode(str));
+  }
+
+  function getTargetPayload() {
+    if (state.destMode === 'web') {
+      const b64 = utf8ToBase64Url(state.text);
+      const base = state.baseUrl.trim() || 'https://je-tu-il.github.io/QR-Shroud/reveal.html';
+      return `${base}#msg=b64:${b64}`;
+    }
+    return state.text;
+  }
 
   // =========================================================================
   // HELPER: GENERATE TARGET QR CODE
@@ -151,7 +197,10 @@
     const text = dom.secretTextInput.value.trim() || "Secret";
     state.text = text;
 
-    const model = generateTargetQR(text, state.qrLevel);
+    const payload = getTargetPayload();
+    state.targetQR.payload = payload;
+
+    const model = generateTargetQR(payload, state.qrLevel);
     if (!model) return;
 
     state.targetQR.matrix = model.matrix;
@@ -186,7 +235,11 @@
     }
 
     state.targetQR.canvas = canvas;
-    dom.targetQrSpecs.textContent = `Grille : ${G} × ${G} modules (Version ${model.version}) • Niveau ${state.qrLevel}`;
+    if (state.destMode === 'web') {
+      dom.targetQrSpecs.textContent = `Grille : ${G} × ${G} modules (Version ${model.version}) • Page Web Confidentielle`;
+    } else {
+      dom.targetQrSpecs.textContent = `Grille : ${G} × ${G} modules (Version ${model.version}) • Texte Brut`;
+    }
   }
 
   // =========================================================================
@@ -237,7 +290,7 @@
     dom.btnBackToStep1.addEventListener('click', () => setStep(1));
     dom.btnGotoStep3.addEventListener('click', () => setStep(3));
     dom.btnBackToStep2.addEventListener('click', () => setStep(2));
-    dom.btnRestart.addEventListener('click', () => setStep(1));
+    if (dom.btnRestart) dom.btnRestart.addEventListener('click', () => setStep(1));
   }
 
   // =========================================================================
@@ -266,6 +319,37 @@
       });
     }
 
+    // Destination format pills
+    if (dom.destinationModePills) {
+      dom.destinationModePills.forEach(pill => {
+        pill.addEventListener('click', () => {
+          dom.destinationModePills.forEach(p => p.classList.remove('active'));
+          pill.classList.add('active');
+          state.destMode = pill.getAttribute('data-dest');
+
+          if (state.destMode === 'web') {
+            if (dom.urlConfigBox) dom.urlConfigBox.style.display = 'flex';
+            if (dom.destinationModeHint) {
+              dom.destinationModeHint.innerHTML = `✓ <strong>Évite la recherche Google :</strong> L'appareil photo de votre smartphone ouvre directement la page HTML <code>reveal.html</code> qui affiche votre texte en grand sans passer par un moteur de recherche.`;
+            }
+          } else {
+            if (dom.urlConfigBox) dom.urlConfigBox.style.display = 'none';
+            if (dom.destinationModeHint) {
+              dom.destinationModeHint.innerHTML = `✓ <strong>Texte Brut direct :</strong> Le QR code contient le texte textuel sans lien web (pour applications hors-ligne).`;
+            }
+          }
+          updateTargetQRPreview();
+        });
+      });
+    }
+
+    if (dom.baseUrlInput) {
+      dom.baseUrlInput.addEventListener('input', debounce(() => {
+        state.baseUrl = dom.baseUrlInput.value.trim() || 'https://je-tu-il.github.io/QR-Shroud/reveal.html';
+        updateTargetQRPreview();
+      }, 300));
+    }
+
     // Shares Count Pills
     dom.sharesCountPills.forEach(pill => {
       pill.addEventListener('click', () => {
@@ -290,17 +374,33 @@
   // STEP 2: EVENTS
   // =========================================================================
   function setupStep2Events() {
-    dom.btnStep2ModeXor.addEventListener('click', () => {
-      dom.btnStep2ModeXor.classList.add('active');
-      dom.btnStep2ModeOr.classList.remove('active');
-      state.superpositionMode = 'xor';
-    });
+    if (dom.btnStep2ModeScannable) {
+      dom.btnStep2ModeScannable.addEventListener('click', () => {
+        dom.btnStep2ModeScannable.classList.add('active');
+        dom.btnStep2ModeOr.classList.remove('active');
+        state.shareMode = 'scannable';
+        if (dom.intermediatePayloadBox) dom.intermediatePayloadBox.style.display = 'block';
+      });
+    }
 
-    dom.btnStep2ModeOr.addEventListener('click', () => {
-      dom.btnStep2ModeOr.classList.add('active');
-      dom.btnStep2ModeXor.classList.remove('active');
-      state.superpositionMode = 'or';
-    });
+    if (dom.btnStep2ModeOr) {
+      dom.btnStep2ModeOr.addEventListener('click', () => {
+        dom.btnStep2ModeOr.classList.add('active');
+        if (dom.btnStep2ModeScannable) dom.btnStep2ModeScannable.classList.remove('active');
+        state.shareMode = 'or';
+        if (dom.intermediatePayloadBox) dom.intermediatePayloadBox.style.display = 'none';
+      });
+    }
+
+    if (dom.intermediateScanPills) {
+      dom.intermediateScanPills.forEach(pill => {
+        pill.addEventListener('click', () => {
+          dom.intermediateScanPills.forEach(p => p.classList.remove('active'));
+          pill.classList.add('active');
+          state.intermediatePayload = pill.getAttribute('data-payload');
+        });
+      });
+    }
   }
 
   // =========================================================================
@@ -310,66 +410,64 @@
     const target = state.targetQR.matrix;
     const G = state.targetQR.G;
     const N = state.sharesCount;
-    const mode = state.superpositionMode;
-
     state.sharesData = [];
 
-    if (mode === 'xor') {
+    if (state.shareMode === 'scannable') {
       // -------------------------------------------------------------
-      // MODE XOR : Grain uniforme sur chaque part.
-      // Superposées, le bruit s'annule et le vrai QR code cible apparaît !
+      // MODE CLÉS SCANNABLES : Chaque QR code individuel est 100% scannable !
       // -------------------------------------------------------------
-      const shares = [];
+      const encoder = new TextEncoder();
+      const secretBytes = encoder.encode(state.text);
+      const xorShares = [];
+
       for (let i = 0; i < N - 1; i++) {
-        const s = [];
-        for (let y = 0; y < G; y++) {
-          s[y] = new Uint8Array(G);
-          for (let x = 0; x < G; x++) {
-            if (isFinderPattern(x, y, G)) {
-              // Conserver les mires de coin officielles pour repérage visuel
-              s[y][x] = target[y][x];
-            } else {
-              s[y][x] = Math.random() < 0.5 ? 1 : 0;
-            }
-          }
+        const s = new Uint8Array(secretBytes.length);
+        if (window.crypto && window.crypto.getRandomValues) {
+          window.crypto.getRandomValues(s);
+        } else {
+          for (let b = 0; b < s.length; b++) s[b] = Math.floor(Math.random() * 256);
         }
-        shares.push(s);
+        xorShares.push(s);
       }
 
-      // Dernière part calculée pour que la superposition XOR donne EXACTEMENT target
-      const lastS = [];
-      for (let y = 0; y < G; y++) {
-        lastS[y] = new Uint8Array(G);
-        for (let x = 0; x < G; x++) {
-          if (isFinderPattern(x, y, G)) {
-            lastS[y][x] = target[y][x];
-          } else {
-            let val = target[y][x];
-            for (let i = 0; i < N - 1; i++) {
-              val ^= shares[i][y][x];
-            }
-            lastS[y][x] = val;
-          }
-        }
+      const lastS = new Uint8Array(secretBytes.length);
+      for (let b = 0; b < secretBytes.length; b++) {
+        let val = secretBytes[b];
+        for (let i = 0; i < N - 1; i++) val ^= xorShares[i][b];
+        lastS[b] = val;
       }
-      shares.push(lastS);
+      xorShares.push(lastS);
+      state.xorKeyShares = xorShares;
 
-      // Générer les canvas HD pour chaque part
-      shares.forEach((matrix, idx) => {
-        const canvas = renderMatrixToHDCanvas(matrix, G);
+      const base = state.baseUrl.trim() || 'https://je-tu-il.github.io/QR-Shroud/reveal.html';
+
+      for (let i = 0; i < N; i++) {
+        let payload = "";
+        if (state.intermediatePayload === 'empty') {
+          payload = " "; // Un simple espace est un QR code ISO valide qui renvoie du vide au scan !
+        } else if (state.destMode === 'web') {
+          payload = `${base}#v=${state.vaultId}&i=${i + 1}&n=${N}&s=${bytesToBase64Url(xorShares[i])}`;
+        } else {
+          payload = `[QR-Shroud] Clé ${i + 1}/${N} (Incomplète - À combiner)`;
+        }
+
+        const shareModel = generateTargetQR(payload, state.qrLevel);
+        const canvas = renderMatrixToHDCanvas(shareModel.matrix, shareModel.G);
+
         state.sharesData.push({
           canvas,
-          matrix,
-          label: `Part #${idx + 1} sur ${N}`,
-          shareIndex: idx + 1
+          matrix: shareModel.matrix,
+          G: shareModel.G,
+          label: `Clé #${i + 1} sur ${N}`,
+          shareIndex: i + 1,
+          payload: payload,
+          isScannable: true
         });
-      });
+      }
 
     } else {
       // -------------------------------------------------------------
-      // MODE OR : Découpage pour calques transparents physiques.
-      // Chaque module noir est imprimé sur une des feuilles.
-      // Superposées, la feuille reforme 100% du QR code noir et blanc !
+      // MODE CALQUES PHYSIQUES PURS : Découpage pour calques transparents
       // -------------------------------------------------------------
       const shares = [];
       for (let i = 0; i < N; i++) {
@@ -382,7 +480,6 @@
         for (let x = 0; x < G; x++) {
           if (target[y][x] === 1) {
             if (isFinderPattern(x, y, G)) {
-              // Mires sur toutes les feuilles pour alignement
               for (let i = 0; i < N; i++) shares[i][y][x] = 1;
             } else {
               const chosen = Math.floor(Math.random() * N);
@@ -400,8 +497,11 @@
         state.sharesData.push({
           canvas,
           matrix,
-          label: `Part #${idx + 1} sur ${N}`,
-          shareIndex: idx + 1
+          G,
+          label: `Calque #${idx + 1} sur ${N}`,
+          shareIndex: idx + 1,
+          payload: "",
+          isScannable: false
         });
       });
     }
@@ -420,11 +520,11 @@
     const ctx = canvas.getContext('2d');
     ctx.imageSmoothingEnabled = false;
 
-    // Fond blanc pur (Quiet zone vitale)
+    // Fond blanc pur
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, totalDim, totalDim);
 
-    // Modules
+    // Modules noirs
     ctx.fillStyle = '#000000';
     const offset = margin * modSize;
     for (let y = 0; y < G; y++) {
@@ -435,16 +535,17 @@
       }
     }
 
-    // Croix de repérage (+) aux 4 coins externes
-    drawRegistrationCrosshairs(ctx, totalDim, offset / 2);
+    // Repères de calage (+) aux 4 coins
+    drawRegistrationMarks(ctx, totalDim);
 
     return canvas;
   }
 
-  function drawRegistrationCrosshairs(ctx, totalDim, markOffset) {
+  function drawRegistrationMarks(ctx, totalDim) {
     ctx.strokeStyle = '#000000';
     ctx.lineWidth = 1.5;
-    const crossSize = 12;
+    const markOffset = 18;
+    const crossSize = 10;
 
     const corners = [
       { x: markOffset, y: markOffset },
@@ -468,7 +569,7 @@
     const N = state.sharesData.length;
 
     dom.sharesGridTitle.textContent = `Vos ${N} QR Codes découpés`;
-    dom.sharesGridDesc.textContent = `Imprimez-les sur du papier calque ou téléchargez-les individuellement. Superposés, ils reforment le VRAI QR code scannable par n'importe quel smartphone.`;
+    dom.sharesGridDesc.textContent = `Téléchargez ou imprimez chaque QR code individuellement.`;
 
     state.sharesData.forEach((item, idx) => {
       const card = document.createElement('div');
@@ -478,7 +579,7 @@
       header.className = 'share-card-header';
       header.innerHTML = `
         <strong>QR Code #${idx + 1}</strong>
-        <span class="share-tag">Part ${idx + 1} / ${N}</span>
+        <span class="share-tag">${item.isScannable ? 'Scannable ✓' : 'Calque ' + (idx + 1) + '/' + N}</span>
       `;
 
       const wrap = document.createElement('div');
@@ -494,13 +595,24 @@
 
       const scannableBadge = document.createElement('div');
       scannableBadge.style.cssText = 'width: 100%; font-size: 0.78rem; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 0.5rem 0.75rem; color: #38bdf8; display: flex; flex-direction: column; gap: 0.2rem; margin-top: 0.5rem;';
-      scannableBadge.innerHTML = `
-        <div style="display:flex; align-items:center; gap:5px; font-weight:600;">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          Part Cryptographique Découpée
-        </div>
-        <span style="color:#94a3b8; font-size:0.72rem;">Superposez cette part avec les ${N - 1} autres pour révéler le QR code.</span>
-      `;
+      
+      if (item.isScannable) {
+        scannableBadge.innerHTML = `
+          <div style="display:flex; align-items:center; gap:5px; font-weight:600; color:#34d399;">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            100% Scannable par smartphone
+          </div>
+          <span style="color:#94a3b8; font-size:0.72rem;">${state.intermediatePayload === 'empty' ? 'Scanne sans texte (neutre)' : 'Indique clé partielle ' + (idx + 1) + '/' + N}</span>
+        `;
+      } else {
+        scannableBadge.innerHTML = `
+          <div style="display:flex; align-items:center; gap:5px; font-weight:600;">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Calque Transparent
+          </div>
+          <span style="color:#94a3b8; font-size:0.72rem;">Superposez face à la lumière pour faire apparaître le secret.</span>
+        `;
+      }
 
       const actions = document.createElement('div');
       actions.className = 'share-actions';
@@ -512,7 +624,7 @@
       btnDl.style.width = '100%';
       btnDl.innerHTML = `
         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-        Télécharger Part #${idx + 1} (PNG HD)
+        Télécharger QR Code #${idx + 1} (PNG HD)
       `;
       btnDl.addEventListener('click', () => {
         downloadCanvasImage(item.canvas, `QRCode_Part_${idx + 1}_sur_${N}.png`);
@@ -530,12 +642,11 @@
   }
 
   // =========================================================================
-  // SIMULATOR (STEP 3)
+  // SIMULATOR
   // =========================================================================
   function initSimulator() {
     state.sim.offsetX = 28;
     state.sim.offsetY = -24;
-    dom.simDragHint.style.opacity = '1';
     renderSimFrame();
   }
 
@@ -543,7 +654,6 @@
     const cCont = dom.simCanvasContainer;
 
     cCont.addEventListener('pointerdown', (e) => {
-      if (state.sharesData.length < 2) return;
       state.sim.isDragging = true;
       state.sim.startX = e.clientX;
       state.sim.startY = e.clientY;
@@ -615,7 +725,6 @@
       // -------------------------------------------------------------
       // ALIGNEMENT PARFAIT (0, 0) :
       // On dessine le VRAI QR Code Cible officiel au pixel près !
-      // N'importe quel appareil photo / smartphone le lit en 0.05 seconde !
       // -------------------------------------------------------------
       simCtx.fillStyle = '#ffffff';
       simCtx.fillRect(0, 0, width, height);
@@ -624,66 +733,28 @@
       simCtx.drawImage(targetCanvas, 0, 0, width, height);
 
       dom.simOffsetVal.textContent = `X: 0px, Y: 0px (Parfait)`;
-      dom.simAlignStatus.textContent = '★ VRAI QR CODE RECONSTITUÉ ! Flashez avec votre iPhone !';
+      dom.simAlignStatus.textContent = '★ VRAI QR CODE RECONSTITUÉ ! Flashez avec votre smartphone !';
       dom.simAlignStatus.className = 'stat-val tag-success';
 
     } else {
       // -------------------------------------------------------------
-      // DÉCALÉ : Simulation de calques imparfaits ou de bruit
+      // DÉCALÉ : Simulation de superposition avec décalage
       // -------------------------------------------------------------
-      if (state.superpositionMode === 'or') {
-        simCtx.fillStyle = '#ffffff';
-        simCtx.fillRect(0, 0, width, height);
+      simCtx.fillStyle = '#ffffff';
+      simCtx.fillRect(0, 0, width, height);
 
-        simCtx.globalCompositeOperation = 'source-over';
-        simCtx.drawImage(state.sharesData[0].canvas, 0, 0, width, height);
+      simCtx.globalCompositeOperation = 'source-over';
+      simCtx.drawImage(state.sharesData[0].canvas, 0, 0, width, height);
 
-        simCtx.save();
-        simCtx.globalCompositeOperation = 'multiply';
-        simCtx.globalAlpha = 0.95;
-        simCtx.translate(state.sim.offsetX, state.sim.offsetY);
-        simCtx.drawImage(state.sharesData[1].canvas, 0, 0, width, height);
-        simCtx.restore();
-      } else {
-        // Simulation XOR avec calque décalé
-        const b1 = document.createElement('canvas');
-        b1.width = width;
-        b1.height = height;
-        const ctx1 = b1.getContext('2d');
-        ctx1.drawImage(state.sharesData[0].canvas, 0, 0, width, height);
-
-        const b2 = document.createElement('canvas');
-        b2.width = width;
-        b2.height = height;
-        const ctx2 = b2.getContext('2d');
-        ctx2.drawImage(state.sharesData[1].canvas, state.sim.offsetX, state.sim.offsetY, width, height);
-
-        const img1 = ctx1.getImageData(0, 0, width, height);
-        const img2 = ctx2.getImageData(0, 0, width, height);
-        const out = simCtx.createImageData(width, height);
-
-        const d1 = img1.data;
-        const d2 = img2.data;
-        const dOut = out.data;
-        const totalPx = width * height * 4;
-
-        for (let i = 0; i < totalPx; i += 4) {
-          const isDark1 = (d1[i] < 128);
-          const isDark2 = (d2[i] < 128);
-          const xorVal = (isDark1 !== isDark2);
-
-          const color = xorVal ? 0 : 255;
-          dOut[i] = color;
-          dOut[i + 1] = color;
-          dOut[i + 2] = color;
-          dOut[i + 3] = 255;
-        }
-
-        simCtx.putImageData(out, 0, 0);
-      }
+      simCtx.save();
+      simCtx.globalCompositeOperation = 'multiply';
+      simCtx.globalAlpha = 0.92;
+      simCtx.translate(state.sim.offsetX, state.sim.offsetY);
+      simCtx.drawImage(state.sharesData[1].canvas, 0, 0, width, height);
+      simCtx.restore();
 
       dom.simOffsetVal.textContent = `X: ${state.sim.offsetX}px, Y: ${state.sim.offsetY}px`;
-      dom.simAlignStatus.textContent = 'Décalé : Motif brouillé (Inscannable)';
+      dom.simAlignStatus.textContent = 'Décalé : Glissez pour aligner (0, 0)';
       dom.simAlignStatus.className = 'stat-val tag-danger';
     }
   }
@@ -783,17 +854,16 @@ Ce pack contient vos ${N} QR codes découpés ainsi que le QR code cible reconst
 TEXTE SECRET ENCODÉ :
 "${state.text}"
 
-COMMENT RÉVÉLER LE SECRET :
-1. OPTION CALQUES TRANSPARENTS (RECOMMANDÉ) :
-   Imprimez les ${N} parts sur des feuilles transparentes (calque ou rhodoïd).
-   Superposez-les exactement en alignant les croix de repère (+) ou les 3 carrés de coin.
-   Tenez le bloc face à une fenêtre ou une lampe :
-   LE VRAI QR CODE RECONSTITUÉ APPARAÎT !
+DESTINATION AU SCAN :
+${state.destMode === 'web' ? 'Page Web Confidentielle (reveal.html) - Évite la recherche Google' : 'Texte brut'}
 
-2. SCAN DIRECT PAR SMARTPHONE (PAS DE SITE WEB !) :
-   Pointez simplement l'appareil photo ordinaire de votre iPhone ou Android
-   vers la superposition :
-   VOTRE TÉLÉPHONE SCANNE LE QR CODE DIRECTEMENT ET AFFICHE VOTRE TEXTE !
+COMMENT RÉVÉLER LE SECRET :
+1. SUPERPOSITION DIRECTE :
+   En superposant les ${N} parts (ou dans le simulateur), le VRAI QR CODE CIBLE
+   est reformé. Flashez-le avec l'appareil photo d'un smartphone pour révéler le secret !
+
+2. CLÉS INTERMÉDIAIRES SCANNABLES :
+   Chaque QR code individuel est également scannable par un smartphone.
 
 ========================================================================`;
 

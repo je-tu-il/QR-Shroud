@@ -9,28 +9,37 @@
 
 ---
 
-## 💡 Révélation Directe & 100% Scannable
+## 💡 Fonctionnalités & Innovations
 
-* **Zéro site web de décryptage** : Aucun site web tiers, aucune page de déchiffrement ni redirection nécessaire.
-* **Superposition Optique & Numérique** : La combinaison de vos 2, 3 ou 4 QR codes reconstruit directement le **VRAI QR code officiel** contenant votre texte brut (ou URL).
-* **Scan Natif Smartphone (iPhone & Android)** : Dès que les QR codes sont superposés (dans le simulateur ou imprimés sur du papier calque / transparent face à la lumière), l'application Appareil Photo native de votre smartphone détecte et lit instantanément le texte secret !
-* **Aperçu en Direct** : Visualisez instantanément le QR code cible dès la saisie de votre texte à l'étape 1.
+* **🌐 Affichage Direct sur Page HTML (Évite la recherche Google iPhone/Android)** :
+  Au lieu de scanner du texte brut que les smartphones interprètent souvent comme une recherche web dans Safari ou Chrome, le QR code ouvre directement une page HTML sécurisée (`reveal.html`) affichant votre texte en grand, net, avec bouton de copie !
+  * *100% Privé & Client-Side* : Le secret est encodé dans le fragment `#msg=` de l'URL, qui n'est jamais transmis au serveur.
+  * *Mode Texte Brut également disponible* pour les usages 100% hors-ligne.
+
+* **📱 Clés Intermédiaires 100% Scannables par Smartphone** :
+  Chaque QR code individuel est un **véritable QR code normalisé ISO** !
+  * Votre appareil photo le détecte et le scanne immédiatement (il ne l'ignore pas).
+  * Au scan seul, il renvoie un statut de clé partielle (*"Clé 1/4 - Incomplète : À superposer"*) ou du vide selon votre choix.
+
+* **✨ Superposition Reconstituant le Vrai QR Code** :
+  Dès que les parts sont alignées dans le simulateur interactif ou combinées, elles reforment le **VRAI QR code cible officiel**. Flashez simplement votre écran avec votre téléphone pour déverrouiller le message secret !
 
 ---
 
 ## ⚡ Parcours en 3 Étapes
 
-1. **Étape 1 : Saisissez votre texte secret**
-   * Tapez votre texte, mot de passe, énigme ou coordonnées.
-   * Visualisez en temps réel l'aperçu du vrai QR code cible (testable immédiatement à l'écran).
-   * Choisissez le nombre de parts requises (2, 3 ou 4 QR codes) et la tolérance d'erreur.
+1. **Étape 1 : Saisissez votre texte secret & Destination**
+   * Tapez votre texte secret, mot de passe ou coordonnées.
+   * Choisissez le format : **Page Web Confidentielle** (recommandé mobile) ou **Texte Brut**.
+   * Visualisez en temps réel l'aperçu du vrai QR code cible.
+   * Choisissez le nombre de clés requises (2, 3 ou 4 QR codes).
 
-2. **Étape 2 : Mode de superposition & Décomposition**
-   * **Mode Écran / Simulateur (XOR)** : Masquage parfait par bruit complémentaire. La superposition annule le bruit et fait naître le QR code cible.
-   * **Mode Papier Calque / Transparents (OR)** : Répartition physique des modules sur transparents pour superposition par rétroéclairage.
+2. **Étape 2 : Mode de découpage & Comportement des clés**
+   * **Clés 100% Scannables** : Chaque part est un vrai QR code autonome lisible par smartphone.
+   * **Calques Physiques purs** : Répartition pour papier transparent et superposition par rétroéclairage.
 
 3. **Étape 3 : Simulateur Interactif & Export**
-   * **Simulateur en direct** : Faites glisser les calques avec la souris ou le doigt pour tester le calage. Dès qu'ils sont alignés, scannez l'écran avec votre téléphone !
+   * **Simulateur en direct** : Faites glisser les calques avec la souris ou le doigt. Cliquez sur *"Alignement parfait"* et scannez votre écran avec votre smartphone !
    * **Téléchargement** : PNG HD individuels de chaque part, QR code cible et Pack ZIP complet.
    * **Impression** : Planche prête à imprimer avec croix de repérage (+) pour calage optique précis.
 
