@@ -9,33 +9,30 @@
 
 ---
 
-## 💡 Deux Modes de Secret
+## 💡 Révélation Directe & 100% Scannable
 
-### 1. 🗝️ Mode Coffre-fort Web (Recommandé pour du texte / mots de passe / énigmes)
-* **Redirection mobile scannable (4 QR Codes)** : Le texte secret est découpé mathématiquement en 4 fragments chiffrés (Masque jetable de Shannon / XOR One-Time Pad).
-* **100% Scannable sur iPhone & Android** : Chaque QR code redirige vers la page de déverrouillage [`reveal.html`](https://je-tu-il.github.io/QR-Shroud/reveal.html).
-* **Déverrouillage par combinaison** : Dès que les 4 clés sont scannées avec un smartphone ou combinées dans le simulateur, le message secret s'affiche en clair, net et lisible !
-* **Sécurité absolue** : Avec 1, 2 ou 3 clés, il est mathématiquement impossible de deviner le moindre mot du secret.
-
-### 2. 👁️ Mode Pochoir Visuel (Pour images / silhouettes / calques transparents)
-* **Superposition physique de calques** : Chaque QR code possède une texture de grain uniforme.
-* **Révélation optique** : Dès que vous empilez les QR codes (dans le simulateur interactif ou sur du papier calque / transparent face à la lumière), l'image apparaît par contraste !
+* **Zéro site web de décryptage** : Aucun site web tiers, aucune page de déchiffrement ni redirection nécessaire.
+* **Superposition Optique & Numérique** : La combinaison de vos 2, 3 ou 4 QR codes reconstruit directement le **VRAI QR code officiel** contenant votre texte brut (ou URL).
+* **Scan Natif Smartphone (iPhone & Android)** : Dès que les QR codes sont superposés (dans le simulateur ou imprimés sur du papier calque / transparent face à la lumière), l'application Appareil Photo native de votre smartphone détecte et lit instantanément le texte secret !
+* **Aperçu en Direct** : Visualisez instantanément le QR code cible dès la saisie de votre texte à l'étape 1.
 
 ---
 
 ## ⚡ Parcours en 3 Étapes
 
-1. **Étape 1 : Choisissez votre secret**
-   * **Texte Secret (Coffre-fort)** : Saisissez n'importe quel mot de passe, message secret ou coordonnées GPS. Choisissez le nombre de QR codes (4 recommandés, ou 2, 3).
-   * **Image (Pochoir visuel)** : Glissez une image (PNG, JPG, WebP, SVG, etc.) ou choisissez un symbole prédéfini (Cadenas 🔒, Smiley 😎, Cœur ❤️, etc.).
+1. **Étape 1 : Saisissez votre texte secret**
+   * Tapez votre texte, mot de passe, énigme ou coordonnées.
+   * Visualisez en temps réel l'aperçu du vrai QR code cible (testable immédiatement à l'écran).
+   * Choisissez le nombre de parts requises (2, 3 ou 4 QR codes) et la tolérance d'erreur.
 
-2. **Étape 2 : Vérification & Paramètres**
-   * Récapitulatif du coffre-fort ou réglage de la résolution et du contraste du pochoir.
+2. **Étape 2 : Mode de superposition & Décomposition**
+   * **Mode Écran / Simulateur (XOR)** : Masquage parfait par bruit complémentaire. La superposition annule le bruit et fait naître le QR code cible.
+   * **Mode Papier Calque / Transparents (OR)** : Répartition physique des modules sur transparents pour superposition par rétroéclairage.
 
-3. **Étape 3 : Résultat, Simulateur & Export**
-   * **Simulateur interactif** : Testez la combinaison des 4 clés ou l'alignement des calques.
-   * **Téléchargement** : PNG HD individuels ou Pack ZIP complet (inclut `reveal.html` et guide).
-   * **Impression** : Planche prête à imprimer avec repères de découpe et croix de calage (+).
+3. **Étape 3 : Simulateur Interactif & Export**
+   * **Simulateur en direct** : Faites glisser les calques avec la souris ou le doigt pour tester le calage. Dès qu'ils sont alignés, scannez l'écran avec votre téléphone !
+   * **Téléchargement** : PNG HD individuels de chaque part, QR code cible et Pack ZIP complet.
+   * **Impression** : Planche prête à imprimer avec croix de repérage (+) pour calage optique précis.
 
 ---
 
@@ -43,7 +40,7 @@
 
 1. Double-cliquez simplement sur `index.html`.
 2. L'application tourne immédiatement dans n'importe quel navigateur moderne (Chrome, Edge, Firefox, Safari, Brave...).
-3. 100% local et sécurisé : aucune donnée ne quitte votre ordinateur.
+3. 100% local, autonome et sécurisé : aucune donnée ne quitte votre machine.
 
 ---
 

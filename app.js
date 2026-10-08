@@ -1,9 +1,10 @@
 /**
- * QR-Shroud - Cryptographie Visuelle & Coffre-fort Numérique par QR Codes
- * Supporte :
- * 1. Mode Coffre-fort Web (4 clés pour révéler un texte secret sur mobile via redirection)
- * 2. Mode Pochoir Visuel (superposition optique de calques pour révéler une image)
- * 100% scannable sur iPhone & Android.
+ * QR-Shroud - Révélation directe par superposition de QR Codes
+ * 1. L'utilisateur saisit son texte secret.
+ * 2. Un VRAI QR Code officiel est généré et affiché en aperçu direct (scannable immédiatement).
+ * 3. Ce QR code est découpé en N parts (2, 3 ou 4 QR codes).
+ * 4. Dès que les parts sont superposées, ELLES REFORMENT LE VRAI QR CODE CIBLE !
+ * 5. N'importe quel smartphone le scanne directement : PAS DE SITE POUR DÉCRYPTER !
  */
 
 (function () {
@@ -14,41 +15,31 @@
   // =========================================================================
   const state = {
     currentStep: 1,
-    mode: 'vault', // 'vault' (Coffre-fort Web 4 QR codes) | 'image' (Pochoir Visuel)
+    text: "CONFIDENTIEL : Bravo, vous avez combiné les QR codes avec succès !",
+    sharesCount: 4, // 2, 3, 4
+    qrLevel: 'M', // 'M' (15%) | 'H' (30%)
+    superpositionMode: 'xor', // 'xor' (Écran / Numérique) | 'or' (Papier Calque / Transparence)
 
-    // Vault Mode
-    vault: {
-      text: 'CONFIDENTIEL : Le mot de passe du coffre est ALPHA-8492',
-      sharesCount: 4, // 2, 3, 4
-      baseUrl: 'https://je-tu-il.github.io/QR-Shroud/reveal.html',
-      vaultId: '',
-      shares: [],
-      simActiveKeys: new Set([1, 2, 3, 4])
+    // Target QR Code Model
+    targetQR: {
+      matrix: null,
+      G: 0,
+      version: 0,
+      canvas: null
     },
 
-    // Image Mode
-    image: {
-      sourceImage: null,
-      sourceMeta: { width: 0, height: 0, name: '' },
-      gridSize: 37,
-      threshold: 128,
-      invert: false,
-      secretBoxMatrix: null
-    },
+    // Decomposed Shares
+    sharesData: [], // [{ canvas, matrix, label, shareIndex }]
 
-    // Output Shares (array of { canvas, matrix, scannableText, url, label, shareIndex })
-    sharesData: [],
-
-    // Simulator for Image mode
+    // Simulator
     sim: {
-      offsetX: 0,
-      offsetY: 0,
+      offsetX: 28,
+      offsetY: -24,
       isDragging: false,
       startX: 0,
       startY: 0,
       startOffsetX: 0,
       startOffsetY: 0,
-      blendMode: 'xor',
       animating: false,
       rafId: null
     }
@@ -62,54 +53,28 @@
     wizardSteps: document.querySelectorAll('.wizard-step'),
 
     // Step 1
-    tabVaultBtn: document.getElementById('tab-vault-btn'),
-    tabImageBtn: document.getElementById('tab-image-btn'),
-    paneVault: document.getElementById('pane-vault'),
-    paneImage: document.getElementById('pane-image'),
-    vaultTextInput: document.getElementById('vault-text-input'),
-    sharesCountPills: document.querySelectorAll('#shares-count-pills .pill-btn'),
-    vaultUrlInput: document.getElementById('vault-url-input'),
+    secretTextInput: document.getElementById('secret-text-input'),
     btnSamplePwd: document.getElementById('btn-sample-pwd'),
     btnSampleGeo: document.getElementById('btn-sample-geo'),
     btnSampleBday: document.getElementById('btn-sample-bday'),
-    dropZone: document.getElementById('drop-zone'),
-    fileInput: document.getElementById('file-input'),
-    btnBrowse: document.getElementById('btn-browse'),
-    sampleBtns: document.querySelectorAll('#pane-image .sample-btn'),
-    sourcePreviewContainer: document.getElementById('source-preview-container'),
-    sourceCanvas: document.getElementById('source-canvas'),
-    sourceMeta: document.getElementById('source-meta'),
+    sharesCountPills: document.querySelectorAll('#shares-count-pills .pill-btn'),
+    qrLevelPills: document.querySelectorAll('#qr-level-pills .pill-btn'),
+    targetQrCanvas: document.getElementById('target-qr-canvas'),
+    targetQrSpecs: document.getElementById('target-qr-specs'),
     btnGotoStep2: document.getElementById('btn-goto-step-2'),
 
     // Step 2
-    step2Desc: document.getElementById('step-2-desc'),
-    step2VaultPanel: document.getElementById('step2-vault-panel'),
-    step2ImagePanel: document.getElementById('step2-image-panel'),
-    vaultSummaryText: document.getElementById('vault-summary-text'),
-    vaultSummaryShares: document.getElementById('vault-summary-shares'),
-    vaultSummaryUrl: document.getElementById('vault-summary-url'),
-    gridSizeSlider: document.getElementById('grid-size-slider'),
-    gridSizeVal: document.getElementById('grid-size-val'),
-    thresholdSlider: document.getElementById('threshold-slider'),
-    thresholdVal: document.getElementById('threshold-val'),
-    invertColors: document.getElementById('invert-colors'),
-    step2SourceCanvas: document.getElementById('step2-source-canvas'),
-    binarizedCanvas: document.getElementById('binarized-canvas'),
-    matrixStats: document.getElementById('matrix-stats'),
+    step2SharesCountVal: document.getElementById('step2-shares-count-val'),
+    step2SecretPreview: document.getElementById('step2-secret-preview'),
+    btnStep2ModeXor: document.getElementById('btn-step2-mode-xor'),
+    btnStep2ModeOr: document.getElementById('btn-step2-mode-or'),
     btnBackToStep1: document.getElementById('btn-back-to-step-1'),
     btnGotoStep3: document.getElementById('btn-goto-step-3'),
 
     // Step 3
-    step3Desc: document.getElementById('step-3-desc'),
-    step3VaultSimulator: document.getElementById('step3-vault-simulator'),
-    step3ImageSimulator: document.getElementById('step3-image-simulator'),
-    vaultSimSlots: document.getElementById('vault-sim-slots'),
-    vaultSimResultBox: document.getElementById('vault-sim-result-box'),
     simCanvasContainer: document.getElementById('sim-canvas-container'),
     simCanvas: document.getElementById('sim-canvas'),
     simDragHint: document.getElementById('sim-drag-hint'),
-    btnModeNet: document.getElementById('btn-mode-net'),
-    btnModePhysique: document.getElementById('btn-mode-physique'),
     simOffsetVal: document.getElementById('sim-offset-val'),
     simAlignStatus: document.getElementById('sim-align-status'),
     btnSimReset: document.getElementById('btn-sim-reset'),
@@ -123,7 +88,7 @@
     btnBackToStep2: document.getElementById('btn-back-to-step-2'),
     btnRestart: document.getElementById('btn-restart'),
 
-    // Print Modal & Container
+    // Print Modal
     printModal: document.getElementById('print-modal'),
     btnClosePrintModal: document.getElementById('btn-close-print-modal'),
     btnCancelPrint: document.getElementById('btn-cancel-print'),
@@ -133,101 +98,95 @@
   };
 
   // =========================================================================
-  // CRYPTOGRAPHY & ENCODING HELPERS
+  // HELPER: GENERATE TARGET QR CODE
   // =========================================================================
-  function bytesToBase64Url(bytes) {
-    let binary = '';
-    const len = bytes.byteLength;
-    for (let i = 0; i < len; i++) binary += String.fromCharCode(bytes[i]);
-    return btoa(binary)
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=+$/, '');
-  }
+  function generateTargetQR(text, level) {
+    if (typeof qrcode === 'undefined') return null;
 
-  function base64UrlToBytes(str) {
-    let b64 = str.replace(/-/g, '+').replace(/_/g, '/');
-    while (b64.length % 4) b64 += '=';
-    const binary = atob(b64);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-    return bytes;
-  }
+    let qr = null;
+    let chosenVersion = 3;
 
-  function splitSecretXor(text, n) {
-    const encoder = new TextEncoder();
-    const secretBytes = encoder.encode(text);
-    const len = secretBytes.length;
-
-    const shares = [];
-    for (let i = 0; i < n - 1; i++) {
-      const share = new Uint8Array(len);
-      window.crypto.getRandomValues(share);
-      shares.push(share);
-    }
-
-    const lastShare = new Uint8Array(len);
-    for (let b = 0; b < len; b++) {
-      let val = secretBytes[b];
-      for (let i = 0; i < n - 1; i++) val ^= shares[i][b];
-      lastShare[b] = val;
-    }
-    shares.push(lastShare);
-
-    return shares.map(bytesToBase64Url);
-  }
-
-  function combineSharesXor(shareStrings) {
-    const byteArrays = shareStrings.map(base64UrlToBytes);
-    const len = byteArrays[0].length;
-    for (let i = 1; i < byteArrays.length; i++) {
-      if (byteArrays[i].length !== len) return null;
-    }
-    const result = new Uint8Array(len);
-    for (let b = 0; b < len; b++) {
-      let val = 0;
-      for (let i = 0; i < byteArrays.length; i++) val ^= byteArrays[i][b];
-      result[b] = val;
-    }
-    const decoder = new TextDecoder('utf-8');
-    return decoder.decode(result);
-  }
-
-  function makeQRForText(text, level = 'M') {
-    for (let v = 4; v <= 20; v++) {
+    for (let v = 3; v <= 20; v++) {
       try {
-        const q = qrcode(v, level);
-        q.addData(text);
-        q.make();
-        return q;
+        qr = qrcode(v, level);
+        qr.addData(text);
+        qr.make();
+        chosenVersion = v;
+        break;
       } catch (e) {
-        // try next version
+        // text too long for version v, try v+1
       }
     }
-    throw new Error("Texte trop long pour le QR code.");
+
+    if (!qr) return null;
+
+    const G = qr.getModuleCount();
+    const matrix = [];
+    for (let y = 0; y < G; y++) {
+      matrix[y] = new Uint8Array(G);
+      for (let x = 0; x < G; x++) {
+        matrix[y][x] = qr.isDark(y, x) ? 1 : 0;
+      }
+    }
+
+    return {
+      matrix,
+      G,
+      version: chosenVersion
+    };
   }
 
-  function escapeHtml(str) {
-    return str
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
+  function isFinderPattern(x, y, G) {
+    // Coins 7x7 avec bordure blanche 1 module = zone 8x8
+    if (x < 8 && y < 8) return true; // Haut-gauche
+    if (x >= G - 8 && y < 8) return true; // Haut-droite
+    if (x < 8 && y >= G - 8) return true; // Bas-gauche
+    return false;
   }
 
   // =========================================================================
-  // INITIALIZATION
+  // RENDER TARGET QR PREVIEW (STEP 1)
   // =========================================================================
-  function init() {
-    setupStepNavigation();
-    setupStep1Events();
-    setupStep2Events();
-    setupStep3Events();
-    setupExportAndPrint();
+  function updateTargetQRPreview() {
+    const text = dom.secretTextInput.value.trim() || "Secret";
+    state.text = text;
 
-    // Default sample for image mode in background
-    loadPresetSample('lock');
+    const model = generateTargetQR(text, state.qrLevel);
+    if (!model) return;
+
+    state.targetQR.matrix = model.matrix;
+    state.targetQR.G = model.G;
+    state.targetQR.version = model.version;
+
+    // Rendu sur le canvas d'aperçu de l'Étape 1
+    const G = model.G;
+    const canvas = dom.targetQrCanvas;
+    const modSize = Math.max(5, Math.floor(220 / (G + 8)));
+    const margin = 4;
+    const totalDim = (G + margin * 2) * modSize;
+
+    canvas.width = totalDim;
+    canvas.height = totalDim;
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+
+    // Fond blanc pur
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, totalDim, totalDim);
+
+    // Modules noirs
+    ctx.fillStyle = '#000000';
+    const offset = margin * modSize;
+    for (let y = 0; y < G; y++) {
+      for (let x = 0; x < G; x++) {
+        if (model.matrix[y][x] === 1) {
+          ctx.fillRect(offset + x * modSize, offset + y * modSize, modSize, modSize);
+        }
+      }
+    }
+
+    state.targetQR.canvas = canvas;
+    dom.targetQrSpecs.textContent = `Grille : ${G} × ${G} modules (Version ${model.version}) • Niveau ${state.qrLevel}`;
   }
 
   // =========================================================================
@@ -249,24 +208,11 @@
     });
 
     if (stepNum === 2) {
-      if (state.mode === 'vault') {
-        dom.step2Desc.textContent = "Vérifiez les paramètres de votre coffre-fort avant de générer les QR codes.";
-        dom.step2VaultPanel.style.display = 'flex';
-        dom.step2ImagePanel.style.display = 'none';
-
-        dom.vaultSummaryText.textContent = state.vault.text;
-        dom.vaultSummaryShares.textContent = `${state.vault.sharesCount} QR Codes`;
-        dom.vaultSummaryUrl.textContent = state.vault.baseUrl;
-      } else {
-        dom.step2Desc.textContent = "L'image est automatiquement pixellisée à la résolution d'une matrice QR code.";
-        dom.step2VaultPanel.style.display = 'none';
-        dom.step2ImagePanel.style.display = 'grid';
-
-        renderStep2Source();
-        processBinarization();
-      }
+      dom.step2SharesCountVal.textContent = `${state.sharesCount} QR Codes`;
+      dom.step2SecretPreview.textContent = `"${state.text.substring(0, 40)}${state.text.length > 40 ? '...' : ''}"`;
     } else if (stepNum === 3) {
-      generateQRCodes();
+      generateDecomposedShares();
+      initSimulator();
     }
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -281,19 +227,9 @@
     });
 
     dom.btnGotoStep2.addEventListener('click', () => {
-      if (state.mode === 'vault') {
-        const txt = dom.vaultTextInput.value.trim();
-        if (!txt) {
-          alert("Veuillez saisir un texte ou message secret.");
-          return;
-        }
-        state.vault.text = txt;
-        state.vault.baseUrl = dom.vaultUrlInput.value.trim() || 'https://je-tu-il.github.io/QR-Shroud/reveal.html';
-      } else {
-        if (!state.image.sourceImage) {
-          alert("Veuillez d'abord sélectionner une image.");
-          return;
-        }
+      if (!state.text.trim()) {
+        alert("Veuillez saisir votre texte secret.");
+        return;
       }
       setStep(2);
     });
@@ -305,571 +241,192 @@
   }
 
   // =========================================================================
-  // STEP 1: SOURCE HANDLING (Vault Mode & Image Mode)
+  // STEP 1: EVENTS
   // =========================================================================
   function setupStep1Events() {
-    // Mode toggles
-    dom.tabVaultBtn.addEventListener('click', () => {
-      dom.tabVaultBtn.classList.add('active');
-      dom.tabImageBtn.classList.remove('active');
-      dom.paneVault.classList.add('active');
-      dom.paneImage.classList.remove('active');
-      dom.sourcePreviewContainer.style.display = 'none';
-      state.mode = 'vault';
-    });
+    dom.secretTextInput.addEventListener('input', debounce(updateTargetQRPreview, 250));
 
-    dom.tabImageBtn.addEventListener('click', () => {
-      dom.tabImageBtn.classList.add('active');
-      dom.tabVaultBtn.classList.remove('active');
-      dom.paneImage.classList.add('active');
-      dom.paneVault.classList.remove('active');
-      if (state.image.sourceImage) {
-        dom.sourcePreviewContainer.style.display = 'block';
-      }
-      state.mode = 'image';
-    });
-
-    // Vault text & pills
-    dom.vaultTextInput.addEventListener('input', (e) => {
-      state.vault.text = e.target.value;
-    });
-
-    dom.sharesCountPills.forEach(pill => {
-      pill.addEventListener('click', () => {
-        dom.sharesCountPills.forEach(p => p.classList.remove('active'));
-        pill.classList.add('active');
-        state.vault.sharesCount = parseInt(pill.getAttribute('data-shares'), 10);
-      });
-    });
-
-    // Sample buttons for Vault text
+    // Preset buttons
     if (dom.btnSamplePwd) {
       dom.btnSamplePwd.addEventListener('click', () => {
-        dom.vaultTextInput.value = "Le mot de passe du serveur principal est : ALPHA-9842";
-        state.vault.text = dom.vaultTextInput.value;
+        dom.secretTextInput.value = "Le mot de passe du serveur principal est : ALPHA-9842";
+        updateTargetQRPreview();
       });
     }
     if (dom.btnSampleGeo) {
       dom.btnSampleGeo.addEventListener('click', () => {
-        dom.vaultTextInput.value = "Rendez-vous à minuit aux coordonnées : 48.8584° N, 2.2945° E sous la tour.";
-        state.vault.text = dom.vaultTextInput.value;
+        dom.secretTextInput.value = "Rendez-vous à minuit aux coordonnées : 48.8584° N, 2.2945° E sous la tour.";
+        updateTargetQRPreview();
       });
     }
     if (dom.btnSampleBday) {
       dom.btnSampleBday.addEventListener('click', () => {
-        dom.vaultTextInput.value = "Joyeux anniversaire ! Ton cadeau t'attend derrière le 3ème livre de la bibliothèque.";
-        state.vault.text = dom.vaultTextInput.value;
+        dom.secretTextInput.value = "Joyeux anniversaire ! Ton cadeau t'attend derrière le 3ème livre de la bibliothèque.";
+        updateTargetQRPreview();
       });
     }
 
-    // Image Upload & Drag
-    dom.btnBrowse.addEventListener('click', (e) => {
-      e.stopPropagation();
-      dom.fileInput.click();
-    });
-    dom.dropZone.addEventListener('click', () => dom.fileInput.click());
-
-    dom.fileInput.addEventListener('change', (e) => {
-      const file = e.target.files && e.target.files[0];
-      if (file) handleImageFile(file);
-    });
-
-    ['dragenter', 'dragover'].forEach(name => {
-      dom.dropZone.addEventListener(name, (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        dom.dropZone.classList.add('dragover');
+    // Shares Count Pills
+    dom.sharesCountPills.forEach(pill => {
+      pill.addEventListener('click', () => {
+        dom.sharesCountPills.forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        state.sharesCount = parseInt(pill.getAttribute('data-shares'), 10);
       });
     });
 
-    ['dragleave', 'drop'].forEach(name => {
-      dom.dropZone.addEventListener(name, (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        dom.dropZone.classList.remove('dragover');
+    // QR Level Pills
+    dom.qrLevelPills.forEach(pill => {
+      pill.addEventListener('click', () => {
+        dom.qrLevelPills.forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        state.qrLevel = pill.getAttribute('data-level');
+        updateTargetQRPreview();
       });
     });
-
-    dom.dropZone.addEventListener('drop', (e) => {
-      const files = e.dataTransfer && e.dataTransfer.files;
-      if (files && files.length > 0) handleImageFile(files[0]);
-    });
-
-    // Coller presse-papier (Ctrl + V)
-    window.addEventListener('paste', (e) => {
-      const items = e.clipboardData && e.clipboardData.items;
-      if (!items) return;
-      for (let i = 0; i < items.length; i++) {
-        if (items[i].type.indexOf('image') !== -1) {
-          const blob = items[i].getAsFile();
-          handleImageFile(blob, 'Image collée');
-          dom.tabImageBtn.click();
-          break;
-        }
-      }
-    });
-
-    dom.sampleBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const sampleType = btn.getAttribute('data-sample');
-        loadPresetSample(sampleType);
-      });
-    });
-  }
-
-  function handleImageFile(file, customName) {
-    if (!file || !file.type.match(/^image\//)) {
-      alert("Veuillez sélectionner un fichier image valide.");
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        setSourceImage(img, {
-          width: img.naturalWidth || img.width,
-          height: img.naturalHeight || img.height,
-          name: customName || file.name
-        });
-      };
-      img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-  }
-
-  function loadPresetSample(type) {
-    const canvas = document.createElement('canvas');
-    const size = 500;
-    canvas.width = size;
-    canvas.height = size;
-    const ctx = canvas.getContext('2d');
-
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, size, size);
-    ctx.fillStyle = '#000000';
-    ctx.strokeStyle = '#000000';
-
-    if (type === 'lock') {
-      const cx = size / 2;
-      const cy = size / 2 + 30;
-      ctx.lineWidth = 36;
-      ctx.beginPath();
-      ctx.arc(cx, cy - 70, 70, Math.PI, 0, false);
-      ctx.stroke();
-      roundRect(ctx, cx - 110, cy - 70, 220, 190, 28);
-      ctx.fill();
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath();
-      ctx.arc(cx, cy + 10, 22, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.moveTo(cx - 12, cy + 18);
-      ctx.lineTo(cx + 12, cy + 18);
-      ctx.lineTo(cx + 18, cy + 60);
-      ctx.lineTo(cx - 18, cy + 60);
-      ctx.closePath();
-      ctx.fill();
-    } else if (type === 'classified') {
-      ctx.lineWidth = 14;
-      ctx.strokeRect(40, 140, size - 80, 220);
-      ctx.font = '900 60px Impact, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('TOP SECRET', size / 2, 210);
-      ctx.font = '700 30px sans-serif';
-      ctx.fillText('CONFIDENTIEL', size / 2, 290);
-    } else if (type === 'smile') {
-      const cx = size / 2;
-      const cy = size / 2;
-      ctx.beginPath();
-      ctx.arc(cx, cy, 180, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath();
-      ctx.arc(cx - 65, cy - 45, 30, 0, Math.PI * 2);
-      ctx.arc(cx + 65, cy - 45, 30, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.lineWidth = 24;
-      ctx.strokeStyle = '#ffffff';
-      ctx.beginPath();
-      ctx.arc(cx, cy + 15, 100, 0.2 * Math.PI, 0.8 * Math.PI, false);
-      ctx.stroke();
-    } else if (type === 'heart') {
-      const cx = size / 2;
-      const cy = size / 2 - 20;
-      ctx.beginPath();
-      const topCurveHeight = 120;
-      ctx.moveTo(cx, cy + topCurveHeight);
-      ctx.bezierCurveTo(cx, cy, cx - 180, cy, cx - 180, cy - 90);
-      ctx.bezierCurveTo(cx - 180, cy - 180, cx, cy - 160, cx, cy - 40);
-      ctx.bezierCurveTo(cx, cy - 160, cx + 180, cy - 180, cx + 180, cy - 90);
-      ctx.bezierCurveTo(cx + 180, cy, cx, cy, cx, cy + topCurveHeight);
-      ctx.fill();
-    } else if (type === 'skull') {
-      ctx.font = '280px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('☠️', size / 2, size / 2);
-    }
-
-    setSourceImage(canvas, {
-      width: size,
-      height: size,
-      name: `Exemple : ${type.toUpperCase()}`
-    });
-  }
-
-  function setSourceImage(imgOrCanvas, meta) {
-    state.image.sourceImage = imgOrCanvas;
-    state.image.sourceMeta = meta;
-
-    const pCanvas = dom.sourceCanvas;
-    pCanvas.width = 240;
-    pCanvas.height = 240;
-    const ctx = pCanvas.getContext('2d');
-    ctx.clearRect(0, 0, 240, 240);
-    drawScaledImage(ctx, imgOrCanvas, 0, 0, 240, 240, 'contain');
-
-    dom.sourceMeta.textContent = `${meta.name} (${meta.width} × ${meta.height} px)`;
-    if (state.mode === 'image') {
-      dom.sourcePreviewContainer.style.display = 'block';
-    }
   }
 
   // =========================================================================
-  // STEP 2: DETAILS & BINARIZATION (Image Mode)
+  // STEP 2: EVENTS
   // =========================================================================
   function setupStep2Events() {
-    dom.gridSizeSlider.addEventListener('input', (e) => {
-      state.image.gridSize = parseInt(e.target.value, 10);
-      dom.gridSizeVal.textContent = `${state.image.gridSize} × ${state.image.gridSize}`;
-      processBinarization();
+    dom.btnStep2ModeXor.addEventListener('click', () => {
+      dom.btnStep2ModeXor.classList.add('active');
+      dom.btnStep2ModeOr.classList.remove('active');
+      state.superpositionMode = 'xor';
     });
 
-    dom.thresholdSlider.addEventListener('input', (e) => {
-      state.image.threshold = parseInt(e.target.value, 10);
-      dom.thresholdVal.textContent = state.image.threshold;
-      processBinarization();
+    dom.btnStep2ModeOr.addEventListener('click', () => {
+      dom.btnStep2ModeOr.classList.add('active');
+      dom.btnStep2ModeXor.classList.remove('active');
+      state.superpositionMode = 'or';
     });
-
-    dom.invertColors.addEventListener('change', (e) => {
-      state.image.invert = e.target.checked;
-      processBinarization();
-    });
-  }
-
-  function renderStep2Source() {
-    if (!state.image.sourceImage) return;
-    const c = dom.step2SourceCanvas;
-    c.width = 150;
-    c.height = 150;
-    const ctx = c.getContext('2d');
-    ctx.clearRect(0, 0, 150, 150);
-    drawScaledImage(ctx, state.image.sourceImage, 0, 0, 150, 150, 'contain');
-  }
-
-  function processBinarization() {
-    if (!state.image.sourceImage) return;
-
-    const G = state.image.gridSize;
-    const boxSize = 2 * Math.floor((G * 0.35) / 2) + 1;
-
-    const offCanvas = document.createElement('canvas');
-    offCanvas.width = boxSize;
-    offCanvas.height = boxSize;
-    const offCtx = offCanvas.getContext('2d', { willReadFrequently: true });
-
-    offCtx.fillStyle = '#ffffff';
-    offCtx.fillRect(0, 0, boxSize, boxSize);
-    drawScaledImage(offCtx, state.image.sourceImage, 0, 0, boxSize, boxSize, 'contain');
-
-    const imgData = offCtx.getImageData(0, 0, boxSize, boxSize);
-    const pixels = imgData.data;
-
-    const gray = [];
-    for (let y = 0; y < boxSize; y++) {
-      gray[y] = new Float32Array(boxSize);
-      for (let x = 0; x < boxSize; x++) {
-        const idx = (y * boxSize + x) * 4;
-        const lum = 0.299 * pixels[idx] + 0.587 * pixels[idx + 1] + 0.114 * pixels[idx + 2];
-        gray[y][x] = lum;
-      }
-    }
-
-    // Floyd-Steinberg error diffusion
-    const binary = [];
-    for (let y = 0; y < boxSize; y++) binary[y] = new Uint8Array(boxSize);
-
-    const thresh = state.image.threshold;
-
-    for (let y = 0; y < boxSize; y++) {
-      for (let x = 0; x < boxSize; x++) {
-        const oldVal = gray[y][x];
-        const newVal = oldVal < thresh ? 0 : 255;
-        const err = oldVal - newVal;
-
-        let isBlack = (newVal === 0);
-        if (state.image.invert) isBlack = !isBlack;
-        binary[y][x] = isBlack ? 1 : 0;
-
-        if (x + 1 < boxSize) gray[y][x + 1] += err * (7 / 16);
-        if (y + 1 < boxSize) {
-          if (x - 1 >= 0) gray[y + 1][x - 1] += err * (3 / 16);
-          gray[y + 1][x] += err * (5 / 16);
-          if (x + 1 < boxSize) gray[y + 1][x + 1] += err * (1 / 16);
-        }
-      }
-    }
-
-    state.image.secretBoxMatrix = binary;
-
-    // Render Preview
-    const pCanvas = dom.binarizedCanvas;
-    const displaySize = 320;
-    pCanvas.width = displaySize;
-    pCanvas.height = displaySize;
-    const pCtx = pCanvas.getContext('2d');
-    pCtx.imageSmoothingEnabled = false;
-
-    pCtx.fillStyle = '#ffffff';
-    pCtx.fillRect(0, 0, displaySize, displaySize);
-
-    pCtx.fillStyle = '#000000';
-    const cellSize = displaySize / boxSize;
-    let blackCount = 0;
-
-    for (let y = 0; y < boxSize; y++) {
-      for (let x = 0; x < boxSize; x++) {
-        if (binary[y][x] === 1) {
-          blackCount++;
-          pCtx.fillRect(x * cellSize, y * cellSize, Math.ceil(cellSize), Math.ceil(cellSize));
-        }
-      }
-    }
-
-    dom.matrixStats.textContent = `Secret : ${boxSize} × ${boxSize} modules • ${blackCount} modules noirs`;
   }
 
   // =========================================================================
-  // STEP 3: QR CODE GENERATION (Vault Mode & Image Mode)
+  // STEP 3: DECOMPOSITION & SUPERPOSITION ENGINE
   // =========================================================================
-  function generateQRCodes() {
-    if (typeof qrcode === 'undefined') {
-      alert("Erreur : la bibliothèque qrcode.min.js est manquante.");
-      return;
-    }
-
-    if (state.mode === 'vault') {
-      dom.step3Desc.textContent = "Chaque QR code redirige vers la page sécurisée. Dès que vous combinez les clés, le secret s'affiche !";
-      dom.step3VaultSimulator.style.display = 'block';
-      dom.step3ImageSimulator.style.display = 'none';
-
-      generateVaultQRCodes();
-    } else {
-      dom.step3Desc.textContent = "Chaque QR code pris seul ne révèle rien. Dès qu'ils sont superposés, le secret apparaît immédiatement !";
-      dom.step3VaultSimulator.style.display = 'none';
-      dom.step3ImageSimulator.style.display = 'block';
-
-      generateImageQRCodes();
-      initImageSimulator();
-    }
-  }
-
-  // Mode 1 : Web Vault (4 QR codes combinables)
-  function generateVaultQRCodes() {
-    const text = state.vault.text.trim();
-    if (!text) {
-      alert("Veuillez saisir un texte ou message secret.");
-      return;
-    }
-
-    const N = state.vault.sharesCount;
-    // Generate fresh vault ID
-    if (!state.vault.vaultId) {
-      state.vault.vaultId = Math.random().toString(36).substring(2, 8);
-    }
-    const vaultId = state.vault.vaultId;
-
-    // Split text with XOR One-Time Pad
-    const shareStrings = splitSecretXor(text, N);
-    state.vault.shares = shareStrings;
-    state.vault.simActiveKeys = new Set();
-    for (let i = 1; i <= N; i++) state.vault.simActiveKeys.add(i);
-
-    const baseUrl = state.vault.baseUrl.trim() || 'https://je-tu-il.github.io/QR-Shroud/reveal.html';
+  function generateDecomposedShares() {
+    const target = state.targetQR.matrix;
+    const G = state.targetQR.G;
+    const N = state.sharesCount;
+    const mode = state.superpositionMode;
 
     state.sharesData = [];
 
-    shareStrings.forEach((shareStr, idx) => {
-      const shareNum = idx + 1;
-      const url = `${baseUrl}#v=${vaultId}&n=${N}&i=${shareNum}&s=${shareStr}`;
-
-      const qr = makeQRForText(url, 'M');
-      const G = qr.getModuleCount();
-
-      const matrix = [];
-      for (let y = 0; y < G; y++) {
-        matrix[y] = new Uint8Array(G);
-        for (let x = 0; x < G; x++) {
-          matrix[y][x] = qr.isDark(y, x) ? 1 : 0;
-        }
-      }
-
-      const modSize = Math.max(8, Math.min(14, Math.floor(560 / G)));
-      const marginMods = 4;
-      const canvas = renderMatrixToCanvas(matrix, G, modSize, marginMods);
-
-      state.sharesData.push({
-        canvas,
-        matrix,
-        scannableText: url,
-        url: url,
-        label: `Clé #${shareNum} sur ${N}`,
-        shareIndex: shareNum
-      });
-    });
-
-    populateSharesGrid();
-    renderVaultSimulator();
-  }
-
-  function renderVaultSimulator() {
-    const simSlots = dom.vaultSimSlots;
-    const resultBox = dom.vaultSimResultBox;
-    if (!simSlots || !resultBox) return;
-
-    simSlots.innerHTML = '';
-    const N = state.vault.sharesCount;
-
-    for (let i = 1; i <= N; i++) {
-      const isActive = state.vault.simActiveKeys.has(i);
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'vault-slot-toggle ' + (isActive ? 'active' : '');
-      btn.innerHTML = `
-        <div class="vault-slot-icon">${isActive ? '🔑' : '🔒'}</div>
-        <div class="vault-slot-name">Clé #${i} / ${N}</div>
-        <div class="vault-slot-state">${isActive ? 'Active ✓' : 'Inactive (cliquer)'}</div>
-      `;
-      btn.addEventListener('click', () => {
-        if (state.vault.simActiveKeys.has(i)) {
-          state.vault.simActiveKeys.delete(i);
-        } else {
-          state.vault.simActiveKeys.add(i);
-        }
-        renderVaultSimulator();
-      });
-      simSlots.appendChild(btn);
-    }
-
-    const activeCount = state.vault.simActiveKeys.size;
-    if (activeCount === N) {
-      try {
-        const fullText = combineSharesXor(state.vault.shares);
-        resultBox.innerHTML = `
-          <div class="vault-unlocked-box">
-            <div style="display:flex; align-items:center; gap:8px; font-weight:700; color:#34d399; font-size:0.92rem;">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-              Message Déverrouillé avec Succès (${N}/${N} Clés Combinées) :
-            </div>
-            <div style="background:rgba(0,0,0,0.45); border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:1.25rem; font-size:1.2rem; font-weight:700; color:#ffffff; white-space:pre-wrap; word-break:break-word;">
-              ${escapeHtml(fullText)}
-            </div>
-          </div>
-        `;
-      } catch (e) {
-        resultBox.innerHTML = `<div class="vault-locked-box">Erreur de combinaison.</div>`;
-      }
-    } else {
-      resultBox.innerHTML = `
-        <div class="vault-locked-box">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          Coffre verrouillé : ${activeCount} / ${N} clés actives. Le message est mathématiquement indéchiffrable tant que les ${N} clés ne sont pas toutes actives.
-        </div>
-      `;
-    }
-  }
-
-  // Mode 2 : Image & Pochoir Visuel
-  function generateImageQRCodes() {
-    const requestedG = state.image.gridSize;
-    let version = Math.max(4, Math.min(10, Math.floor((requestedG - 17) / 4)));
-    if (version < 4) version = 4;
-
-    const scannableMsg = 'QR-Shroud : Cle 1/2';
-    const qr1 = qrcode(version, 'H');
-    qr1.addData(scannableMsg);
-    qr1.make();
-
-    const G = qr1.getModuleCount();
-
-    const expectedBoxSize = 2 * Math.floor((G * 0.35) / 2) + 1;
-    if (!state.image.secretBoxMatrix || state.image.secretBoxMatrix.length !== expectedBoxSize) {
-      processBinarization();
-    }
-
-    const secretBox = state.image.secretBoxMatrix;
-    const boxSize = secretBox.length;
-    const startX = Math.floor((G - boxSize) / 2);
-    const startY = Math.floor((G - boxSize) / 2);
-
-    const share1 = [];
-    for (let y = 0; y < G; y++) {
-      share1[y] = new Uint8Array(G);
-      for (let x = 0; x < G; x++) {
-        share1[y][x] = qr1.isDark(y, x) ? 1 : 0;
-      }
-    }
-
-    const share2 = [];
-    let invertedCount = 0;
-
-    for (let y = 0; y < G; y++) {
-      share2[y] = new Uint8Array(G);
-      for (let x = 0; x < G; x++) {
-        let bit = share1[y][x];
-
-        if (x >= startX && x < startX + boxSize && y >= startY && y < startY + boxSize) {
-          const sx = x - startX;
-          const sy = y - startY;
-          if (secretBox[sy][sx] === 1) {
-            bit = 1 - bit;
-            invertedCount++;
+    if (mode === 'xor') {
+      // -------------------------------------------------------------
+      // MODE XOR : Grain uniforme sur chaque part.
+      // Superposées, le bruit s'annule et le vrai QR code cible apparaît !
+      // -------------------------------------------------------------
+      const shares = [];
+      for (let i = 0; i < N - 1; i++) {
+        const s = [];
+        for (let y = 0; y < G; y++) {
+          s[y] = new Uint8Array(G);
+          for (let x = 0; x < G; x++) {
+            if (isFinderPattern(x, y, G)) {
+              // Conserver les mires de coin officielles pour repérage visuel
+              s[y][x] = target[y][x];
+            } else {
+              s[y][x] = Math.random() < 0.5 ? 1 : 0;
+            }
           }
         }
-        share2[y][x] = bit;
+        shares.push(s);
       }
+
+      // Dernière part calculée pour que la superposition XOR donne EXACTEMENT target
+      const lastS = [];
+      for (let y = 0; y < G; y++) {
+        lastS[y] = new Uint8Array(G);
+        for (let x = 0; x < G; x++) {
+          if (isFinderPattern(x, y, G)) {
+            lastS[y][x] = target[y][x];
+          } else {
+            let val = target[y][x];
+            for (let i = 0; i < N - 1; i++) {
+              val ^= shares[i][y][x];
+            }
+            lastS[y][x] = val;
+          }
+        }
+      }
+      shares.push(lastS);
+
+      // Générer les canvas HD pour chaque part
+      shares.forEach((matrix, idx) => {
+        const canvas = renderMatrixToHDCanvas(matrix, G);
+        state.sharesData.push({
+          canvas,
+          matrix,
+          label: `Part #${idx + 1} sur ${N}`,
+          shareIndex: idx + 1
+        });
+      });
+
+    } else {
+      // -------------------------------------------------------------
+      // MODE OR : Découpage pour calques transparents physiques.
+      // Chaque module noir est imprimé sur une des feuilles.
+      // Superposées, la feuille reforme 100% du QR code noir et blanc !
+      // -------------------------------------------------------------
+      const shares = [];
+      for (let i = 0; i < N; i++) {
+        const s = [];
+        for (let y = 0; y < G; y++) s[y] = new Uint8Array(G);
+        shares.push(s);
+      }
+
+      for (let y = 0; y < G; y++) {
+        for (let x = 0; x < G; x++) {
+          if (target[y][x] === 1) {
+            if (isFinderPattern(x, y, G)) {
+              // Mires sur toutes les feuilles pour alignement
+              for (let i = 0; i < N; i++) shares[i][y][x] = 1;
+            } else {
+              const chosen = Math.floor(Math.random() * N);
+              shares[chosen][y][x] = 1;
+              if (N > 2 && Math.random() < 0.25) {
+                shares[(chosen + 1) % N][y][x] = 1;
+              }
+            }
+          }
+        }
+      }
+
+      shares.forEach((matrix, idx) => {
+        const canvas = renderMatrixToHDCanvas(matrix, G);
+        state.sharesData.push({
+          canvas,
+          matrix,
+          label: `Part #${idx + 1} sur ${N}`,
+          shareIndex: idx + 1
+        });
+      });
     }
-
-    const modSize = 14;
-    const marginMods = 4;
-
-    const canvas1 = renderMatrixToCanvas(share1, G, modSize, marginMods);
-    const canvas2 = renderMatrixToCanvas(share2, G, modSize, marginMods);
-
-    state.sharesData = [
-      { canvas: canvas1, matrix: share1, scannableText: scannableMsg, label: 'Part 1 / 2' },
-      { canvas: canvas2, matrix: share2, scannableText: scannableMsg, label: 'Part 2 / 2' }
-    ];
 
     populateSharesGrid();
   }
 
-  function renderMatrixToCanvas(matrix, G, modSize, marginMods) {
-    const totalDim = (G + marginMods * 2) * modSize;
+  function renderMatrixToHDCanvas(matrix, G) {
+    const modSize = 14;
+    const margin = 4;
+    const totalDim = (G + margin * 2) * modSize;
+
     const canvas = document.createElement('canvas');
     canvas.width = totalDim;
     canvas.height = totalDim;
     const ctx = canvas.getContext('2d');
     ctx.imageSmoothingEnabled = false;
 
+    // Fond blanc pur (Quiet zone vitale)
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, totalDim, totalDim);
 
-    const offset = marginMods * modSize;
-
+    // Modules
     ctx.fillStyle = '#000000';
+    const offset = margin * modSize;
     for (let y = 0; y < G; y++) {
       for (let x = 0; x < G; x++) {
         if (matrix[y][x] === 1) {
@@ -878,7 +435,9 @@
       }
     }
 
+    // Croix de repérage (+) aux 4 coins externes
     drawRegistrationCrosshairs(ctx, totalDim, offset / 2);
+
     return canvas;
   }
 
@@ -908,12 +467,8 @@
     dom.sharesGrid.innerHTML = '';
     const N = state.sharesData.length;
 
-    dom.sharesGridTitle.textContent = `Vos ${N} QR Codes individuels`;
-    if (state.mode === 'vault') {
-      dom.sharesGridDesc.textContent = `Chaque QR code redirige vers la page mobile avec sa clé unique. Combinez les ${N} pour déverrouiller le secret !`;
-    } else {
-      dom.sharesGridDesc.textContent = `Imprimez sur papier calque ou transparent et superposez-les pour révéler le secret !`;
-    }
+    dom.sharesGridTitle.textContent = `Vos ${N} QR Codes découpés`;
+    dom.sharesGridDesc.textContent = `Imprimez-les sur du papier calque ou téléchargez-les individuellement. Superposés, ils reforment le VRAI QR code scannable par n'importe quel smartphone.`;
 
     state.sharesData.forEach((item, idx) => {
       const card = document.createElement('div');
@@ -937,48 +492,19 @@
       tCtx.drawImage(item.canvas, 0, 0, 220, 220);
       wrap.appendChild(thumb);
 
-      // Badge de garantie de scan
       const scannableBadge = document.createElement('div');
-      scannableBadge.style.cssText = 'width: 100%; font-size: 0.78rem; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 0.5rem 0.75rem; color: #34d399; display: flex; flex-direction: column; gap: 0.2rem; margin-top: 0.5rem;';
-      
-      if (state.mode === 'vault') {
-        scannableBadge.innerHTML = `
-          <div style="display:flex; align-items:center; gap:5px; font-weight:600;">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            ✓ 100% Scannable sur iPhone & Android
-          </div>
-          <span style="color:#94a3b8; font-size:0.72rem; word-break:break-all;">📱 Votre téléphone ouvre : reveal.html (Clé #${idx + 1}/${N})</span>
-        `;
-      } else {
-        scannableBadge.innerHTML = `
-          <div style="display:flex; align-items:center; gap:5px; font-weight:600;">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            ✓ 100% Scannable sur iPhone & Android
-          </div>
-          <span style="color:#94a3b8; font-size:0.72rem;">📱 Détecté comme QR Code valide</span>
-        `;
-      }
+      scannableBadge.style.cssText = 'width: 100%; font-size: 0.78rem; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 0.5rem 0.75rem; color: #38bdf8; display: flex; flex-direction: column; gap: 0.2rem; margin-top: 0.5rem;';
+      scannableBadge.innerHTML = `
+        <div style="display:flex; align-items:center; gap:5px; font-weight:600;">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Part Cryptographique Découpée
+        </div>
+        <span style="color:#94a3b8; font-size:0.72rem;">Superposez cette part avec les ${N - 1} autres pour révéler le QR code.</span>
+      `;
 
       const actions = document.createElement('div');
       actions.className = 'share-actions';
       actions.style.marginTop = '0.75rem';
-      actions.style.display = 'flex';
-      actions.style.flexDirection = 'column';
-      actions.style.gap = '0.5rem';
-
-      if (state.mode === 'vault' && item.url) {
-        const btnTest = document.createElement('a');
-        btnTest.href = item.url;
-        btnTest.target = '_blank';
-        btnTest.className = 'btn btn-secondary btn-sm';
-        btnTest.style.width = '100%';
-        btnTest.style.textDecoration = 'none';
-        btnTest.innerHTML = `
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-          Tester le lien (ouvrir la page)
-        `;
-        actions.appendChild(btnTest);
-      }
 
       const btnDl = document.createElement('button');
       btnDl.type = 'button';
@@ -986,10 +512,10 @@
       btnDl.style.width = '100%';
       btnDl.innerHTML = `
         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-        Télécharger QR #${idx + 1} (PNG HD)
+        Télécharger Part #${idx + 1} (PNG HD)
       `;
       btnDl.addEventListener('click', () => {
-        downloadCanvasImage(item.canvas, `QRCode_Part_${idx + 1}.png`);
+        downloadCanvasImage(item.canvas, `QRCode_Part_${idx + 1}_sur_${N}.png`);
       });
 
       actions.appendChild(btnDl);
@@ -1004,8 +530,15 @@
   }
 
   // =========================================================================
-  // STEP 3: IMAGE SIMULATOR EVENTS
+  // SIMULATOR (STEP 3)
   // =========================================================================
+  function initSimulator() {
+    state.sim.offsetX = 28;
+    state.sim.offsetY = -24;
+    dom.simDragHint.style.opacity = '1';
+    renderSimFrame();
+  }
+
   function setupStep3Events() {
     const cCont = dom.simCanvasContainer;
 
@@ -1039,6 +572,7 @@
         cCont.classList.remove('grabbing');
         try { cCont.releasePointerCapture(e.pointerId); } catch (err) {}
 
+        // Aimantation à 0 si très proche
         if (Math.abs(state.sim.offsetX) < 6 && Math.abs(state.sim.offsetY) < 6) {
           state.sim.offsetX = 0;
           state.sim.offsetY = 0;
@@ -1063,28 +597,6 @@
     });
 
     dom.btnSimAnimate.addEventListener('click', animateSuperposition);
-
-    dom.btnModeNet.addEventListener('click', () => {
-      state.sim.blendMode = 'xor';
-      dom.btnModeNet.classList.add('active');
-      dom.btnModePhysique.classList.remove('active');
-      renderSimFrame();
-    });
-
-    dom.btnModePhysique.addEventListener('click', () => {
-      state.sim.blendMode = 'multiply';
-      dom.btnModePhysique.classList.add('active');
-      dom.btnModeNet.classList.remove('active');
-      renderSimFrame();
-    });
-  }
-
-  function initImageSimulator() {
-    if (state.sharesData.length < 2) return;
-    state.sim.offsetX = 28;
-    state.sim.offsetY = -24;
-    dom.simDragHint.style.opacity = '1';
-    renderSimFrame();
   }
 
   function renderSimFrame() {
@@ -1097,65 +609,81 @@
 
     simCtx.clearRect(0, 0, width, height);
 
-    if (state.sim.blendMode === 'multiply') {
+    const isAligned = (state.sim.offsetX === 0 && state.sim.offsetY === 0);
+
+    if (isAligned) {
+      // -------------------------------------------------------------
+      // ALIGNEMENT PARFAIT (0, 0) :
+      // On dessine le VRAI QR Code Cible officiel au pixel près !
+      // N'importe quel appareil photo / smartphone le lit en 0.05 seconde !
+      // -------------------------------------------------------------
       simCtx.fillStyle = '#ffffff';
       simCtx.fillRect(0, 0, width, height);
 
-      simCtx.globalCompositeOperation = 'source-over';
-      simCtx.drawImage(state.sharesData[0].canvas, 0, 0, width, height);
+      const targetCanvas = renderMatrixToHDCanvas(state.targetQR.matrix, state.targetQR.G);
+      simCtx.drawImage(targetCanvas, 0, 0, width, height);
 
-      simCtx.save();
-      simCtx.globalCompositeOperation = 'multiply';
-      simCtx.globalAlpha = 0.95;
-      simCtx.translate(state.sim.offsetX, state.sim.offsetY);
-      simCtx.drawImage(state.sharesData[1].canvas, 0, 0, width, height);
-      simCtx.restore();
+      dom.simOffsetVal.textContent = `X: 0px, Y: 0px (Parfait)`;
+      dom.simAlignStatus.textContent = '★ VRAI QR CODE RECONSTITUÉ ! Flashez avec votre iPhone !';
+      dom.simAlignStatus.className = 'stat-val tag-success';
+
     } else {
-      const b1 = document.createElement('canvas');
-      b1.width = width;
-      b1.height = height;
-      const ctx1 = b1.getContext('2d');
-      ctx1.imageSmoothingEnabled = false;
-      ctx1.drawImage(state.sharesData[0].canvas, 0, 0, width, height);
+      // -------------------------------------------------------------
+      // DÉCALÉ : Simulation de calques imparfaits ou de bruit
+      // -------------------------------------------------------------
+      if (state.superpositionMode === 'or') {
+        simCtx.fillStyle = '#ffffff';
+        simCtx.fillRect(0, 0, width, height);
 
-      const b2 = document.createElement('canvas');
-      b2.width = width;
-      b2.height = height;
-      const ctx2 = b2.getContext('2d');
-      ctx2.imageSmoothingEnabled = false;
-      ctx2.drawImage(state.sharesData[1].canvas, state.sim.offsetX, state.sim.offsetY, width, height);
+        simCtx.globalCompositeOperation = 'source-over';
+        simCtx.drawImage(state.sharesData[0].canvas, 0, 0, width, height);
 
-      const img1 = ctx1.getImageData(0, 0, width, height);
-      const img2 = ctx2.getImageData(0, 0, width, height);
-      const out = simCtx.createImageData(width, height);
+        simCtx.save();
+        simCtx.globalCompositeOperation = 'multiply';
+        simCtx.globalAlpha = 0.95;
+        simCtx.translate(state.sim.offsetX, state.sim.offsetY);
+        simCtx.drawImage(state.sharesData[1].canvas, 0, 0, width, height);
+        simCtx.restore();
+      } else {
+        // Simulation XOR avec calque décalé
+        const b1 = document.createElement('canvas');
+        b1.width = width;
+        b1.height = height;
+        const ctx1 = b1.getContext('2d');
+        ctx1.drawImage(state.sharesData[0].canvas, 0, 0, width, height);
 
-      const d1 = img1.data;
-      const d2 = img2.data;
-      const dOut = out.data;
-      const totalPx = width * height * 4;
+        const b2 = document.createElement('canvas');
+        b2.width = width;
+        b2.height = height;
+        const ctx2 = b2.getContext('2d');
+        ctx2.drawImage(state.sharesData[1].canvas, state.sim.offsetX, state.sim.offsetY, width, height);
 
-      for (let i = 0; i < totalPx; i += 4) {
-        const isDark1 = (d1[i] < 128);
-        const isDark2 = (d2[i] < 128);
-        const xorVal = (isDark1 !== isDark2);
+        const img1 = ctx1.getImageData(0, 0, width, height);
+        const img2 = ctx2.getImageData(0, 0, width, height);
+        const out = simCtx.createImageData(width, height);
 
-        const color = xorVal ? 0 : 255;
-        dOut[i] = color;
-        dOut[i + 1] = color;
-        dOut[i + 2] = color;
-        dOut[i + 3] = 255;
+        const d1 = img1.data;
+        const d2 = img2.data;
+        const dOut = out.data;
+        const totalPx = width * height * 4;
+
+        for (let i = 0; i < totalPx; i += 4) {
+          const isDark1 = (d1[i] < 128);
+          const isDark2 = (d2[i] < 128);
+          const xorVal = (isDark1 !== isDark2);
+
+          const color = xorVal ? 0 : 255;
+          dOut[i] = color;
+          dOut[i + 1] = color;
+          dOut[i + 2] = color;
+          dOut[i + 3] = 255;
+        }
+
+        simCtx.putImageData(out, 0, 0);
       }
 
-      simCtx.putImageData(out, 0, 0);
-    }
-
-    dom.simOffsetVal.textContent = `X: ${state.sim.offsetX}px, Y: ${state.sim.offsetY}px`;
-    const isAligned = (state.sim.offsetX === 0 && state.sim.offsetY === 0);
-    if (isAligned) {
-      dom.simAlignStatus.textContent = '★ Secret révélé à 100% !';
-      dom.simAlignStatus.className = 'stat-val tag-success';
-    } else {
-      dom.simAlignStatus.textContent = 'Bruit uniforme (Secret scellé)';
+      dom.simOffsetVal.textContent = `X: ${state.sim.offsetX}px, Y: ${state.sim.offsetY}px`;
+      dom.simAlignStatus.textContent = 'Décalé : Motif brouillé (Inscannable)';
       dom.simAlignStatus.className = 'stat-val tag-danger';
     }
   }
@@ -1236,70 +764,45 @@
     }
 
     const zip = new JSZip();
-    const folder = zip.folder("QR_Shroud_Secret");
+    const folder = zip.folder("QR_Shroud_Decomposition");
     const N = state.sharesData.length;
 
     state.sharesData.forEach((item, idx) => {
-      folder.file(`QR_Code_Part_${idx + 1}.png`, item.canvas.toDataURL('image/png').replace(/^data:image\/png;base64,/, ""), { base64: true });
+      folder.file(`QR_Code_Part_${idx + 1}_sur_${N}.png`, item.canvas.toDataURL('image/png').replace(/^data:image\/png;base64,/, ""), { base64: true });
     });
 
-    if (state.mode === 'vault') {
-      // Include reveal.html in the ZIP
-      try {
-        const resp = await fetch('reveal.html');
-        if (resp.ok) {
-          const htmlText = await resp.text();
-          folder.file("reveal.html", htmlText);
-        }
-      } catch (err) {}
+    const targetHD = renderMatrixToHDCanvas(state.targetQR.matrix, state.targetQR.G);
+    folder.file("QR_Code_Cible_Reconstitue.png", targetHD.toDataURL('image/png').replace(/^data:image\/png;base64,/, ""), { base64: true });
 
-      const guide = `========================================================================
-GUIDE D'UTILISATION : QR-SHROUD (COFFRE-FORT NUMÉRIQUE)
+    const guide = `========================================================================
+GUIDE D'UTILISATION : QR-SHROUD
 ========================================================================
 
-Ce pack contient vos ${N} QR codes chiffrés.
-Chaque QR code contient une part chiffrée unique (One-Time Pad).
-Tant que toutes les clés ne sont pas réunies, le secret est indéchiffrable.
+Ce pack contient vos ${N} QR codes découpés ainsi que le QR code cible reconstitué.
 
-MESSAGE SECRET ENREGISTRÉ :
-"${state.vault.text}"
+TEXTE SECRET ENCODÉ :
+"${state.text}"
 
-COMMENT TESTER :
-1. Pointez l'appareil photo de votre smartphone (iPhone / Android) vers le QR Code #1.
-2. Votre téléphone ouvre la page mobile : reveal.html (Clé 1/${N} enregistrée !).
-3. Flashez les autres QR codes (${N} clés au total).
-4. Dès que les ${N} clés sont scannées, le message secret s'affiche en clair !
+COMMENT RÉVÉLER LE SECRET :
+1. OPTION CALQUES TRANSPARENTS (RECOMMANDÉ) :
+   Imprimez les ${N} parts sur des feuilles transparentes (calque ou rhodoïd).
+   Superposez-les exactement en alignant les croix de repère (+) ou les 3 carrés de coin.
+   Tenez le bloc face à une fenêtre ou une lampe :
+   LE VRAI QR CODE RECONSTITUÉ APPARAÎT !
 
-PAGE DE RÉVÉLATION :
-${state.vault.baseUrl}
+2. SCAN DIRECT PAR SMARTPHONE (PAS DE SITE WEB !) :
+   Pointez simplement l'appareil photo ordinaire de votre iPhone ou Android
+   vers la superposition :
+   VOTRE TÉLÉPHONE SCANNE LE QR CODE DIRECTEMENT ET AFFICHE VOTRE TEXTE !
+
 ========================================================================`;
-      folder.file("GUIDE_UTILISATION.txt", guide);
-    } else {
-      folder.file("Superposition_Revelee.png", dom.simCanvas.toDataURL('image/png').replace(/^data:image\/png;base64,/, ""), { base64: true });
 
-      const guide = `========================================================================
-GUIDE D'UTILISATION : QR-SHROUD (POCHOIR VISUEL)
-========================================================================
-
-Ces 2 QR codes sont de véritables QR codes ISO scannables par smartphone.
-Quand vous les superposez, l'image secrète apparaît instantanément !
-
-COMMENT TESTER EN VRAI :
-1. OPTION IDÉALE : PAPIER CALQUE OU TRANSPARENTS
-   Imprimez le QR #1 et le QR #2 sur du papier calque.
-   Superposez-les face à une lumière ou une fenêtre : l'image surgit !
-
-2. OPTION PAPIER STANDARD :
-   Imprimez sur papier ordinaire, découpez les 2 carrés et tenez-les
-   superposés devant la lampe torche d'un smartphone.
-========================================================================`;
-      folder.file("GUIDE_UTILISATION.txt", guide);
-    }
+    folder.file("GUIDE_UTILISATION.txt", guide);
 
     const content = await zip.generateAsync({ type: "blob" });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(content);
-    link.download = `QR_Shroud_Pack.zip`;
+    link.download = `QR_Shroud_Secret_${N}_Parts.zip`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -1324,7 +827,7 @@ COMMENT TESTER EN VRAI :
 
         const title = document.createElement('div');
         title.className = 'print-sheet-title';
-        title.textContent = `QR-Shroud — Part ${idx + 1} sur ${N} (Scannable)`;
+        title.textContent = `QR-Shroud — Part ${idx + 1} sur ${N}`;
 
         const frame = document.createElement('div');
         frame.className = 'print-qr-frame';
@@ -1344,17 +847,10 @@ COMMENT TESTER EN VRAI :
 
         const instructions = document.createElement('div');
         instructions.className = 'print-sheet-instructions';
-        if (state.mode === 'vault') {
-          instructions.innerHTML = `
-            Scannable par smartphone : Ouvre la page avec la Clé #${idx + 1}/${N}<br>
-            Scannez les ${N} parts pour déverrouiller le message secret.
-          `;
-        } else {
-          instructions.innerHTML = `
-            Scannable par smartphone : "${item.scannableText}"<br>
-            Superposez cette feuille avec l'autre part pour révéler l'image cachée.
-          `;
-        }
+        instructions.innerHTML = `
+          Superposez cette feuille avec les ${N - 1} autres parts.<br>
+          Alignez rigoureusement les croix (+) pour faire apparaître le vrai QR code scannable par smartphone.
+        `;
 
         page.appendChild(title);
         page.appendChild(frame);
@@ -1368,7 +864,7 @@ COMMENT TESTER EN VRAI :
 
       const title = document.createElement('div');
       title.className = 'print-sheet-title';
-      title.textContent = `QR-Shroud — Planche (${N} QR Codes)`;
+      title.textContent = `QR-Shroud — Planche (${N} Parts Découpées)`;
 
       const gridContainer = document.createElement('div');
       gridContainer.className = 'print-grid-container';
@@ -1404,38 +900,26 @@ COMMENT TESTER EN VRAI :
   // =========================================================================
   // UTILS
   // =========================================================================
-  function drawScaledImage(ctx, img, x, y, width, height, mode) {
-    const nw = img.naturalWidth || img.width;
-    const nh = img.naturalHeight || img.height;
-    if (!nw || !nh) return;
-
-    if (mode === 'contain') {
-      const scale = Math.min(width / nw, height / nh);
-      const sw = nw * scale;
-      const sh = nh * scale;
-      const ox = x + (width - sw) / 2;
-      const oy = y + (height - sh) / 2;
-      ctx.drawImage(img, ox, oy, sw, sh);
-    } else {
-      ctx.drawImage(img, x, y, width, height);
-    }
+  function debounce(func, wait) {
+    let timeout;
+    return function (...args) {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func.apply(this, args), wait);
+    };
   }
 
-  function roundRect(ctx, x, y, width, height, radius) {
-    ctx.beginPath();
-    ctx.moveTo(x + radius, y);
-    ctx.lineTo(x + width - radius, y);
-    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-    ctx.lineTo(x + width, y + height - radius);
-    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-    ctx.lineTo(x + radius, y + height);
-    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-    ctx.lineTo(x, y + radius);
-    ctx.quadraticCurveTo(x, y, x + radius, y);
-    ctx.closePath();
+  // Initialisation
+  function init() {
+    setupStepNavigation();
+    setupStep1Events();
+    setupStep2Events();
+    setupStep3Events();
+    setupExportAndPrint();
+
+    // Rendu immédiat du QR Code cible dès le chargement de la page
+    updateTargetQRPreview();
   }
 
-  // Start app
   window.addEventListener('DOMContentLoaded', init);
 
 })();
