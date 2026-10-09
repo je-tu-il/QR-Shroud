@@ -80,6 +80,9 @@
     btnGotoStep3: document.getElementById('btn-goto-step-3'),
 
     // Step 3
+    step3Title: document.getElementById('step3-title'),
+    step3Subtitle: document.getElementById('step3-subtitle'),
+    step3SimulatorCard: document.getElementById('step3-simulator-card'),
     simCanvasContainer: document.getElementById('sim-canvas-container'),
     simCanvas: document.getElementById('sim-canvas'),
     simDragHint: document.getElementById('sim-drag-hint'),
@@ -241,7 +244,16 @@
 
     if (stepNum === 3) {
       generateDecomposedShares();
-      initSimulator();
+      if (state.shareMode === 'or') {
+        if (dom.step3SimulatorCard) dom.step3SimulatorCard.style.display = 'block';
+        if (dom.step3Title) dom.step3Title.textContent = "3. QR Codes Générés & Simulateur de Superposition";
+        if (dom.step3Subtitle) dom.step3Subtitle.textContent = "Faites glisser les calques pour tester l'alignement et la superposition.";
+        initSimulator();
+      } else {
+        if (dom.step3SimulatorCard) dom.step3SimulatorCard.style.display = 'none';
+        if (dom.step3Title) dom.step3Title.textContent = "3. Vos QR Codes Découpés";
+        if (dom.step3Subtitle) dom.step3Subtitle.textContent = "Chaque QR code contient une part de la clé. Scannez-les avec votre smartphone pour révéler le secret.";
+      }
     }
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -481,7 +493,11 @@
     dom.sharesGrid.innerHTML = '';
     const N = state.sharesData.length;
 
-    dom.sharesGridTitle.textContent = `Vos ${N} QR Codes découpés`;
+    if (state.shareMode === 'or') {
+      dom.sharesGridTitle.textContent = `Vos ${N} Calques découpés`;
+    } else {
+      dom.sharesGridTitle.textContent = `Vos ${N} QR Codes découpés`;
+    }
 
     state.sharesData.forEach((item, idx) => {
       const card = document.createElement('div');
@@ -633,8 +649,13 @@
       simCtx.save();
       simCtx.globalCompositeOperation = 'multiply';
       simCtx.globalAlpha = 0.92;
-      simCtx.translate(state.sim.offsetX, state.sim.offsetY);
-      simCtx.drawImage(state.sharesData[1].canvas, 0, 0, width, height);
+      for (let i = 1; i < state.sharesData.length; i++) {
+        simCtx.save();
+        const factor = i / (state.sharesData.length - 1 || 1);
+        simCtx.translate(Math.round(state.sim.offsetX * factor), Math.round(state.sim.offsetY * factor));
+        simCtx.drawImage(state.sharesData[i].canvas, 0, 0, width, height);
+        simCtx.restore();
+      }
       simCtx.restore();
     }
   }

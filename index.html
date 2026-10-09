@@ -165,12 +165,12 @@
       <!-- ================= STEP 3: RESULTS, SIMULATOR & EXPORT ================= -->
       <section class="wizard-step" id="step-3">
         <div class="section-heading">
-          <h2>3. QR Codes Générés & Simulateur de Superposition</h2>
-          <p>Alignez les QR codes ci-dessous : le VRAI QR code apparaît et peut être scanné directement avec votre smartphone !</p>
+          <h2 id="step3-title">3. Vos QR Codes Découpés</h2>
+          <p id="step3-subtitle">Chaque QR code contient une part de la clé. Scannez-les avec votre smartphone pour révéler le secret.</p>
         </div>
 
-        <!-- Simulator Card -->
-        <div class="simulator-card card" id="step3-simulator-card">
+        <!-- Simulator Card (Affiché uniquement pour le mode Calques Physiques) -->
+        <div class="simulator-card card" id="step3-simulator-card" style="display: none;">
           <div class="simulator-header">
             <div>
               <h3>Simulateur de superposition interactif</h3>
