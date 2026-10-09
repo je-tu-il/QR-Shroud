@@ -30,10 +30,6 @@
             <p class="subtitle">Cryptographie visuelle : superposez deux QR codes pour révéler votre secret</p>
           </div>
         </div>
-        <div class="header-badges">
-          <span class="badge"><span class="badge-dot"></span> 100% Hors-Ligne & Sécurisé</span>
-          <span class="badge">Résultat Garanti & Automatisé</span>
-        </div>
       </div>
     </header>
 
@@ -81,15 +77,6 @@
               Votre texte ou message secret :
             </label>
             <textarea id="secret-text-input" rows="3" placeholder="Tapez votre message secret, code d'accès, mot de passe ou URL...">CONFIDENTIEL : Bravo, vous avez combiné les QR codes avec succès !</textarea>
-            
-            <div class="sample-presets" style="margin-top:0.75rem;">
-              <span class="sample-label">Exemples rapides :</span>
-              <div class="sample-badges">
-                <button type="button" class="sample-btn" id="btn-sample-pwd">🔑 Mot de passe</button>
-                <button type="button" class="sample-btn" id="btn-sample-geo">📍 Coordonnées GPS</button>
-                <button type="button" class="sample-btn" id="btn-sample-bday">💌 Message secret</button>
-              </div>
-            </div>
 
             <!-- Destination / Lecture Format Selector -->
             <div style="margin-top:1.25rem; border-top:1px solid var(--border-color); padding-top:1rem;">
@@ -98,18 +85,12 @@
               </label>
               <div class="pill-group" id="destination-mode-pills">
                 <button type="button" class="pill-btn active" data-dest="web" id="btn-dest-web">
-                  🌐 Page Web Hébergée (reveal.html) ★
-                </button>
-                <button type="button" class="pill-btn" data-dest="data_uri" id="btn-dest-datauri">
-                  💾 Site Embarqué (data:text/html)
+                  🌐 Page Web (reveal.html)
                 </button>
                 <button type="button" class="pill-btn" data-dest="text" id="btn-dest-text">
                   📝 Texte Brut
                 </button>
               </div>
-              <p id="destination-mode-hint" style="font-size:0.8rem; color:var(--text-muted); margin-top:0.4rem;">
-                ✓ <strong>Évite la recherche Google :</strong> L'appareil photo de votre smartphone ouvre directement la page HTML <code>reveal.html</code> qui affiche votre texte en grand sans passer par un moteur de recherche.
-              </p>
               
               <!-- URL Config (discreet) -->
               <div id="url-config-box" style="margin-top:0.6rem; display:flex; flex-direction:column; gap:0.4rem;">
@@ -147,17 +128,6 @@
                 Chaque QR code pris seul ne révèle rien. Dès qu'ils sont superposés, le vrai QR code réapparaît !
               </p>
             </div>
-
-            <!-- Correction level -->
-            <div style="margin-top:1rem; border-top:1px solid var(--border-color); padding-top:1rem;">
-              <label style="font-weight:700; color:var(--text-main); display:block; margin-bottom:0.25rem;">
-                Niveau de robustesse QR (Correction d'erreur) :
-              </label>
-              <div class="pill-group" id="qr-level-pills">
-                <button type="button" class="pill-btn active" data-level="M">Niveau M (Équilibré - 15%)</button>
-                <button type="button" class="pill-btn" data-level="H">Niveau H (Haute robustesse - 30%)</button>
-              </div>
-            </div>
           </div>
 
           <!-- Right: LIVE TARGET QR PREVIEW -->
@@ -166,25 +136,9 @@
               <span style="font-size:1.2rem;">👁️</span>
               <h3 style="font-size:1.05rem; font-weight:700; color:var(--text-main);">Aperçu du Vrai QR Code Cible</h3>
             </div>
-            <p style="font-size:0.82rem; color:var(--text-muted); max-width:320px;">
-              C'est ce QR code officiel qui sera découpé puis reformé lors de la superposition.
-            </p>
 
             <div style="background:#fff; padding:12px; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.3); display:inline-block; margin:0.5rem 0;">
-              <canvas id="target-qr-canvas" width="220" height="220" style="display:block; image-rendering:pixelated;"></canvas>
-            </div>
-
-            <!-- Scannable Badge -->
-            <div style="width:100%; max-width:320px; font-size:0.78rem; background:rgba(16, 185, 129, 0.12); border:1px solid rgba(16, 185, 129, 0.3); border-radius:8px; padding:0.6rem 0.75rem; color:#34d399; display:flex; flex-direction:column; gap:0.25rem; text-align:left;">
-              <div style="display:flex; align-items:center; gap:5px; font-weight:700;">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                ✓ 100% Scannable immédiatement
-              </div>
-              <span style="color:#cbd5e1; font-size:0.75rem;">📱 Pointez votre appareil photo dès maintenant : il lit directement votre texte !</span>
-            </div>
-
-            <div id="target-qr-specs" style="font-size:0.75rem; color:var(--text-dim);">
-              Grille : 29 × 29 modules • Niveau M
+              <canvas id="target-qr-canvas" width="220" height="220" style="display:block; image-rendering:pixelated; width:220px; height:220px;"></canvas>
             </div>
           </div>
         </div>
@@ -242,24 +196,6 @@
                 <span>Les modules noirs sont répartis sur des feuilles transparentes. En les empilant face à la lumière, elles reforment le QR code cible.</span>
               </button>
             </div>
-
-            <!-- Intermediate scan payload selector -->
-            <div id="intermediate-payload-box" style="margin-top:0.75rem; background:rgba(255,255,255,0.03); padding:0.75rem 1rem; border-radius:8px; border:1px solid var(--border-color);">
-              <label style="font-size:0.8rem; font-weight:700; color:var(--text-main); display:block; margin-bottom:0.35rem;">
-                Action si un QR code est scanné seul :
-              </label>
-              <div class="pill-group" id="intermediate-scan-pills">
-                <button type="button" class="pill-btn active" data-payload="status" id="btn-payload-status">
-                  🔑 Statut de la clé (1/4, 2/4...)
-                </button>
-                <button type="button" class="pill-btn" data-payload="empty" id="btn-payload-empty">
-                  ⚪ Vide / Neutre (Ne renvoie rien)
-                </button>
-              </div>
-              <p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.3rem;">
-                Permet à l'appareil photo de détecter un vrai QR code sans révéler le message secret.
-              </p>
-            </div>
           </div>
         </div>
 
@@ -305,18 +241,6 @@
             </div>
 
             <div class="sim-controls">
-              <!-- Statut -->
-              <div class="sim-stats-bar">
-                <div class="sim-stat">
-                  <span class="stat-label">Décalage :</span>
-                  <span class="stat-val" id="sim-offset-val">X: 0px, Y: 0px</span>
-                </div>
-                <div class="sim-stat">
-                  <span class="stat-label">Statut du scan :</span>
-                  <span class="stat-val tag-success" id="sim-align-status">★ QR Code Cible Reconstitué !</span>
-                </div>
-              </div>
-
               <!-- Live Scan Prompt -->
               <div style="background:rgba(16, 185, 129, 0.12); border:1px solid rgba(16, 185, 129, 0.4); border-radius:12px; padding:1rem; display:flex; flex-direction:column; gap:0.4rem;">
                 <div style="display:flex; align-items:center; gap:8px; font-weight:700; color:#34d399; font-size:0.95rem;">
@@ -343,7 +267,6 @@
         <div class="shares-display-section">
           <div class="section-subheading">
             <h3 id="shares-grid-title">Vos QR Codes découpés</h3>
-            <p id="shares-grid-desc">Imprimez-les sur des feuilles séparées ou téléchargez-les individuellement.</p>
           </div>
           <div class="shares-grid" id="shares-grid">
             <!-- Dynamically populated -->
@@ -454,10 +377,7 @@
     <!-- Print Container (Hidden on screen, visible on @media print) -->
     <div id="print-container"></div>
 
-    <!-- Footer -->
-    <footer class="app-footer">
-      <p>QR-Shroud • Cryptographie Visuelle par Superposition • Traitement 100% local dans votre navigateur</p>
-    </footer>
+
   </div>
 
   <!-- Local Libraries -->
