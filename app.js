@@ -70,6 +70,9 @@
     btnDestWeb: document.getElementById('btn-dest-web'),
     btnDestText: document.getElementById('btn-dest-text'),
     sharesCountPills: document.querySelectorAll('#shares-count-pills .pill-btn'),
+    btnSharesCustom: document.getElementById('btn-shares-custom'),
+    customSharesBox: document.getElementById('custom-shares-box'),
+    customSharesInput: document.getElementById('custom-shares-input'),
     targetQrCanvas: document.getElementById('target-qr-canvas'),
     btnGotoStep2: document.getElementById('btn-goto-step-2'),
 
@@ -304,9 +307,34 @@
       pill.addEventListener('click', () => {
         dom.sharesCountPills.forEach(p => p.classList.remove('active'));
         pill.classList.add('active');
-        state.sharesCount = parseInt(pill.getAttribute('data-shares'), 10);
+        const sharesVal = pill.getAttribute('data-shares');
+        if (sharesVal === 'custom') {
+          if (dom.customSharesBox) dom.customSharesBox.style.display = 'flex';
+          const val = parseInt(dom.customSharesInput ? dom.customSharesInput.value : '5', 10) || 5;
+          state.sharesCount = Math.max(2, Math.min(20, val));
+          if (dom.customSharesInput) dom.customSharesInput.focus();
+        } else {
+          if (dom.customSharesBox) dom.customSharesBox.style.display = 'none';
+          state.sharesCount = parseInt(sharesVal, 10);
+        }
       });
     });
+
+    if (dom.customSharesInput) {
+      dom.customSharesInput.addEventListener('input', () => {
+        let val = parseInt(dom.customSharesInput.value, 10);
+        if (isNaN(val)) return;
+        val = Math.max(2, Math.min(20, val));
+        state.sharesCount = val;
+      });
+      dom.customSharesInput.addEventListener('change', () => {
+        let val = parseInt(dom.customSharesInput.value, 10);
+        if (isNaN(val) || val < 2) val = 2;
+        if (val > 20) val = 20;
+        dom.customSharesInput.value = val;
+        state.sharesCount = val;
+      });
+    }
   }
 
   // =========================================================================

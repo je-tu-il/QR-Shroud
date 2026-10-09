@@ -104,7 +104,20 @@
                 <button type="button" class="pill-btn active" data-shares="4">
                   ★ 4 QR Codes (Recommandé)
                 </button>
+                <button type="button" class="pill-btn" data-shares="custom" id="btn-shares-custom">
+                  ⚙️ Personnalisé
+                </button>
               </div>
+
+              <!-- Custom Shares Count Input Box -->
+              <div id="custom-shares-box" style="display:none; margin-top:0.6rem; align-items:center; gap:0.6rem; background:rgba(255,255,255,0.03); padding:0.5rem 0.75rem; border-radius:8px; border:1px solid var(--border-color);">
+                <label for="custom-shares-input" style="font-size:0.82rem; font-weight:600; color:var(--text-main);">
+                  Nombre de parts (2 à 20) :
+                </label>
+                <input type="number" id="custom-shares-input" min="2" max="20" value="5" style="width:65px; padding:0.35rem 0.5rem; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); border-radius:6px; color:#38bdf8; font-size:0.95rem; font-weight:700; text-align:center;">
+                <span id="custom-shares-unit" style="font-size:0.8rem; color:var(--text-muted);">QR Codes</span>
+              </div>
+
               <p style="font-size:0.8rem; color:var(--text-muted); margin-top:0.4rem;">
                 Chaque QR code pris seul ne révèle rien. Dès qu'ils sont superposés, le vrai QR code réapparaît !
               </p>

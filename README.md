@@ -6,7 +6,7 @@
 [![Privacy: 100% Client-Side](https://img.shields.io/badge/Privacy-100%25%20Client--Side-blueviolet.svg)](#)
 [![Crypto: One-Time Pad](https://img.shields.io/badge/Crypto-XOR%20%2F%20Visual%20Sharing-orange.svg)](#)
 
-> **Système moderne de cryptographie et de stéganographie par QR Codes : divisez un message secret en 2, 3 ou 4 QR codes complémentaires.**
+> **Système moderne de cryptographie et de stéganographie par QR Codes : divisez un message secret en 2, 3, 4 ou un nombre personnalisé de QR codes complémentaires (jusqu'à 20 clés).**
 >
 > 🚀 **Tester directement en ligne : [https://je-tu-il.github.io/QR-Shroud/](https://je-tu-il.github.io/QR-Shroud/)**
 
@@ -54,12 +54,12 @@
 ```
  [1. Saisie du Secret] ──► [2. Choix du Mode] ──► [3. Téléchargement & Test]
   • Texte / Mot de passe   • 📱 Clés Scannables     • PNG HD individuels
-  • 2, 3 ou 4 QR codes     • ⬛ Calques Physiques   • Pack ZIP & Impression
+  • 2 à 20 QR codes        • ⬛ Calques Physiques   • Pack ZIP & Impression
 ```
 
 1. **Étape 1 : Secret & Aperçu Cible**
    * Saisissez votre message, coordonnées GPS ou mot de passe.
-   * Choisissez le nombre de parts désirées (2, 3 ou 4).
+   * Choisissez le nombre de parts désiré (2, 3, 4 ou personnalisé de 2 à 20).
    * Visualisez en temps réel l'aperçu du QR code cible.
 
 2. **Étape 2 : Type de Chiffrage**
