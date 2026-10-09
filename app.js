@@ -76,6 +76,8 @@
     destinationModeHint: document.getElementById('destination-mode-hint'),
     urlConfigBox: document.getElementById('url-config-box'),
     baseUrlInput: document.getElementById('base-url-input'),
+    btnPresetGh: document.getElementById('btn-preset-gh'),
+    btnPresetLocal: document.getElementById('btn-preset-local'),
     sharesCountPills: document.querySelectorAll('#shares-count-pills .pill-btn'),
     qrLevelPills: document.querySelectorAll('#qr-level-pills .pill-btn'),
     targetQrCanvas: document.getElementById('target-qr-canvas'),
@@ -140,7 +142,7 @@
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;');
-    return `data:text/html;charset=utf-8,<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>QR-Shroud</title><style>body{margin:0;background:#090d16;color:#f1f5f9;font-family:-apple-system,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;box-sizing:border-box}.c{background:#161f30;border:1px solid #38bdf8;border-radius:14px;padding:24px;max-width:340px;width:100%;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,0.5)}h2{color:#38bdf8;margin:0 0 12px;font-size:1.2rem}p{font-size:1.1rem;line-height:1.5;margin:0 0 16px;color:#fff;word-break:break-word}button{background:#10b981;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-weight:700;cursor:pointer}</style></head><body><div class="c"><h2>🔓 Message Révélé</h2><p id="t">${cleanText}</p><button onclick="navigator.clipboard.writeText(document.getElementById('t').innerText);this.innerText='Copié !'">Copier</button></div></body></html>`;
+    return `data:text/html;charset=utf-8,<body style="background:#090d16;color:#38bdf8;font-family:sans-serif;text-align:center;padding:24px"><h2 style="margin:0 0 10px">🔓 Secret :</h2><p style="color:#fff;font-size:1.2rem;margin:0">${cleanText}</p>`;
   }
 
   function getTargetPayload() {
@@ -163,7 +165,7 @@
     let qr = null;
     let chosenVersion = 3;
 
-    for (let v = 3; v <= 20; v++) {
+    for (let v = 3; v <= 40; v++) {
       try {
         qr = qrcode(v, level);
         qr.addData(text);
@@ -221,12 +223,14 @@
     // Rendu sur le canvas d'aperçu de l'Étape 1
     const G = model.G;
     const canvas = dom.targetQrCanvas;
-    const modSize = Math.max(5, Math.floor(220 / (G + 8)));
     const margin = 4;
+    const modSize = Math.max(3, Math.floor(220 / (G + margin * 2)));
     const totalDim = (G + margin * 2) * modSize;
 
     canvas.width = totalDim;
     canvas.height = totalDim;
+    canvas.style.width = "220px";
+    canvas.style.height = "220px";
     const ctx = canvas.getContext('2d');
     ctx.imageSmoothingEnabled = false;
 
@@ -366,6 +370,22 @@
         state.baseUrl = dom.baseUrlInput.value.trim() || 'https://je-tu-il.github.io/QR-Shroud/reveal.html';
         updateTargetQRPreview();
       }, 300));
+    }
+
+    if (dom.btnPresetGh) {
+      dom.btnPresetGh.addEventListener('click', () => {
+        state.baseUrl = 'https://je-tu-il.github.io/QR-Shroud/reveal.html';
+        if (dom.baseUrlInput) dom.baseUrlInput.value = state.baseUrl;
+        updateTargetQRPreview();
+      });
+    }
+
+    if (dom.btnPresetLocal) {
+      dom.btnPresetLocal.addEventListener('click', () => {
+        state.baseUrl = 'http://192.168.1.164:8080/reveal.html';
+        if (dom.baseUrlInput) dom.baseUrlInput.value = state.baseUrl;
+        updateTargetQRPreview();
+      });
     }
 
     // Shares Count Pills

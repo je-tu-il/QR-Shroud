@@ -112,10 +112,22 @@
               </p>
               
               <!-- URL Config (discreet) -->
-              <div id="url-config-box" style="margin-top:0.6rem; display:flex; flex-direction:column; gap:0.3rem;">
-                <label for="base-url-input" style="font-size:0.75rem; color:var(--text-dim);">URL de la page de lecture :</label>
+              <div id="url-config-box" style="margin-top:0.6rem; display:flex; flex-direction:column; gap:0.4rem;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <label for="base-url-input" style="font-size:0.75rem; color:var(--text-dim); font-weight:600;">URL de la page de lecture :</label>
+                  <div style="display:flex; gap:6px;">
+                    <button type="button" class="btn btn-sm" id="btn-preset-gh" style="font-size:0.7rem; padding:2px 8px; background:rgba(56,189,248,0.15); color:#38bdf8; border:1px solid rgba(56,189,248,0.3); border-radius:4px;">🌐 GitHub Pages</button>
+                    <button type="button" class="btn btn-sm" id="btn-preset-local" style="font-size:0.7rem; padding:2px 8px; background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.3); border-radius:4px;">🏠 Wi-Fi Local (Test direct)</button>
+                  </div>
+                </div>
                 <input type="text" id="base-url-input" value="https://je-tu-il.github.io/QR-Shroud/reveal.html" style="font-size:0.78rem; padding:0.4rem 0.6rem; border-radius:6px; border:1px solid var(--border-color); background:rgba(0,0,0,0.3); color:#38bdf8;">
-                <span style="font-size:0.72rem; color:var(--text-dim);">🔒 100% Privé : Le secret est encodé dans le fragment <code>#msg=</code> (côté client uniquement, jamais envoyé au serveur).</span>
+                
+                <!-- Notice GitHub 404 vs Local -->
+                <div id="url-status-note" style="font-size:0.72rem; color:#cbd5e1; background:rgba(255,255,255,0.04); padding:0.5rem 0.65rem; border-radius:6px; border:1px solid var(--border-color); line-height:1.4;">
+                  ℹ️ <strong>Pourquoi une erreur 404 sur GitHub Pages ?</strong><br>
+                  Par défaut, GitHub ne publie pas le site tant que vous ne l'avez pas activé : rendez-vous sur <a href="https://github.com/je-tu-il/QR-Shroud/settings/pages" target="_blank" style="color:#38bdf8; text-decoration:underline;">Settings &gt; Pages</a>, choisissez la branche <code>main</code> et cliquez sur <strong>Save</strong>.<br>
+                  <em>💡 Pour tester <strong>immédiatement</strong> sur votre iPhone connecté au Wi-Fi, cliquez sur le bouton vert <strong>« 🏠 Wi-Fi Local »</strong> ci-dessus !</em>
+                </div>
               </div>
             </div>
 
