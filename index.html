@@ -78,37 +78,18 @@
             </label>
             <textarea id="secret-text-input" rows="3" placeholder="Tapez votre message secret, code d'accès, mot de passe ou URL...">CONFIDENTIEL : Bravo, vous avez combiné les QR codes avec succès !</textarea>
 
-            <!-- Destination / Lecture Format Selector -->
+            <!-- Destination Format Selector -->
             <div style="margin-top:1.25rem; border-top:1px solid var(--border-color); padding-top:1rem;">
               <label style="font-weight:700; color:var(--text-main); display:block; margin-bottom:0.35rem;">
-                Format de destination au scan (pour smartphone) :
+                Format de destination au scan :
               </label>
               <div class="pill-group" id="destination-mode-pills">
                 <button type="button" class="pill-btn active" data-dest="web" id="btn-dest-web">
-                  🌐 Page Web (reveal.html)
+                  🌐 Page Web
                 </button>
                 <button type="button" class="pill-btn" data-dest="text" id="btn-dest-text">
                   📝 Texte Brut
                 </button>
-              </div>
-              
-              <!-- URL Config (discreet) -->
-              <div id="url-config-box" style="margin-top:0.6rem; display:flex; flex-direction:column; gap:0.4rem;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                  <label for="base-url-input" style="font-size:0.75rem; color:var(--text-dim); font-weight:600;">URL de la page de lecture :</label>
-                  <div style="display:flex; gap:6px;">
-                    <button type="button" class="btn btn-sm" id="btn-preset-gh" style="font-size:0.7rem; padding:2px 8px; background:rgba(56,189,248,0.15); color:#38bdf8; border:1px solid rgba(56,189,248,0.3); border-radius:4px;">🌐 GitHub Pages</button>
-                    <button type="button" class="btn btn-sm" id="btn-preset-local" style="font-size:0.7rem; padding:2px 8px; background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.3); border-radius:4px;">🏠 Wi-Fi Local (Test direct)</button>
-                  </div>
-                </div>
-                <input type="text" id="base-url-input" value="https://je-tu-il.github.io/QR-Shroud/reveal.html" style="font-size:0.78rem; padding:0.4rem 0.6rem; border-radius:6px; border:1px solid var(--border-color); background:rgba(0,0,0,0.3); color:#38bdf8;">
-                
-                <!-- Notice GitHub 404 vs Local -->
-                <div id="url-status-note" style="font-size:0.72rem; color:#cbd5e1; background:rgba(255,255,255,0.04); padding:0.5rem 0.65rem; border-radius:6px; border:1px solid var(--border-color); line-height:1.4;">
-                  ℹ️ <strong>Pourquoi une erreur 404 sur GitHub Pages ?</strong><br>
-                  Par défaut, GitHub ne publie pas le site tant que vous ne l'avez pas activé : rendez-vous sur <a href="https://github.com/je-tu-il/QR-Shroud/settings/pages" target="_blank" style="color:#38bdf8; text-decoration:underline;">Settings &gt; Pages</a>, choisissez la branche <code>main</code> et cliquez sur <strong>Save</strong>.<br>
-                  <em>💡 Pour tester <strong>immédiatement</strong> sur votre iPhone connecté au Wi-Fi, cliquez sur le bouton vert <strong>« 🏠 Wi-Fi Local »</strong> ci-dessus !</em>
-                </div>
               </div>
             </div>
 
@@ -132,10 +113,7 @@
 
           <!-- Right: LIVE TARGET QR PREVIEW -->
           <div class="card" id="target-qr-card" style="text-align:center; display:flex; flex-direction:column; align-items:center; gap:0.75rem;">
-            <div style="display:flex; align-items:center; gap:8px;">
-              <span style="font-size:1.2rem;">👁️</span>
-              <h3 style="font-size:1.05rem; font-weight:700; color:var(--text-main);">Aperçu du Vrai QR Code Cible</h3>
-            </div>
+            <h3 style="font-size:1.05rem; font-weight:700; color:var(--text-main);">Aperçu</h3>
 
             <div style="background:#fff; padding:12px; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.3); display:inline-block; margin:0.5rem 0;">
               <canvas id="target-qr-canvas" width="220" height="220" style="display:block; image-rendering:pixelated; width:220px; height:220px;"></canvas>
@@ -159,43 +137,16 @@
           <p>Choisissez la méthode de découpage pour adapter vos QR codes à l'écran ou au papier calque.</p>
         </div>
 
-        <div class="card vault-summary-card">
-          <h3 class="panel-title">Récapitulatif de la décomposition</h3>
-          
-          <div class="vault-info-grid">
-            <div class="vault-info-item">
-              <span class="vault-info-label">Nombre de parts</span>
-              <span class="vault-info-val" id="step2-shares-count-val">4 QR Codes</span>
-            </div>
-            <div class="vault-info-item">
-              <span class="vault-info-label">Texte à révéler</span>
-              <span class="vault-info-val" style="color:#38bdf8;" id="step2-secret-preview"></span>
-            </div>
-            <div class="vault-info-item">
-              <span class="vault-info-label">Reconstitution</span>
-              <span class="vault-info-val" style="color:#34d399;">Vrai QR Code (100% Scannable)</span>
-            </div>
-            <div class="vault-info-item">
-              <span class="vault-info-label">Application requise</span>
-              <span class="vault-info-val">Aucune (Appareil photo natif)</span>
-            </div>
-          </div>
-
-          <!-- Mode de superposition et comportement des parts -->
-          <div style="margin-top:1rem; border-top:1px solid var(--border-color); padding-top:1rem;">
-            <label style="font-weight:700; color:var(--text-main); display:block; margin-bottom:0.5rem;">
-              Comportement des QR codes découpés :
-            </label>
-            <div class="sim-toggle-buttons">
-              <button type="button" class="sim-mode-btn active" id="btn-step2-mode-scannable">
-                <strong>📱 Clés 100% Scannables (Recommandé)</strong>
-                <span>Chaque QR code individuel est <strong>scannable par smartphone</strong> (indique clé 1/4, 2/4...). L'alignement parfait dans le simulateur ou la combinaison des clés révèle le vrai QR code cible !</span>
-              </button>
-              <button type="button" class="sim-mode-btn" id="btn-step2-mode-or">
-                <strong>⬛ Calques Physiques purs (Papier Transparent / Rétroéclairage)</strong>
-                <span>Les modules noirs sont répartis sur des feuilles transparentes. En les empilant face à la lumière, elles reforment le QR code cible.</span>
-              </button>
-            </div>
+        <div class="card">
+          <div class="sim-toggle-buttons">
+            <button type="button" class="sim-mode-btn active" id="btn-step2-mode-scannable">
+              <strong>📱 Clés scannables</strong>
+              <span>Scannables individuellement par smartphone</span>
+            </button>
+            <button type="button" class="sim-mode-btn" id="btn-step2-mode-or">
+              <strong>⬛ Calques physiques</strong>
+              <span>Pour papier calque transparent et rétroéclairage</span>
+            </button>
           </div>
         </div>
 
@@ -291,29 +242,6 @@
               Imprimer les QR Codes
               <span class="btn-subtext">Mise en page optimisée avec croix de calage (+)</span>
             </button>
-          </div>
-
-          <!-- Physical Tips -->
-          <div class="physical-tips">
-            <h4>Astuces pour le monde réel (Papier & Lumière) :</h4>
-            <div class="tips-grid">
-              <div class="tip-card">
-                <span class="tip-number">1. Papier Calque</span>
-                <strong>Le plus bluffant</strong>
-                <p>Imprimez chaque QR code sur du papier calque ou transparent. Superposez-les face à une fenêtre ou une lampe : l'image apparaît instantanément !</p>
-              </div>
-              <div class="tip-card">
-                <span class="tip-number">2. Papier 80g + Lampe</span>
-                <strong>Sans matériel spécial</strong>
-                <p>Imprimez sur papier ordinaire, découpez les 2 carrés et tenez-les superposés devant la lampe torche d'un smartphone.</p>
-              </div>
-              <div class="tip-card">
-                <span class="tip-number">3. Écran + Papier</span>
-                <strong>Rapide à tester</strong>
-                <p>Affichez le QR #1 en grand sur l'écran d'un smartphone et posez le QR #2 imprimé sur papier par-dessus.</p>
-              </div>
-            </div>
-          </div>
         </div>
 
         <div class="step-actions">

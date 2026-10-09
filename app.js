@@ -69,17 +69,11 @@
     destinationModePills: document.querySelectorAll('#destination-mode-pills .pill-btn'),
     btnDestWeb: document.getElementById('btn-dest-web'),
     btnDestText: document.getElementById('btn-dest-text'),
-    urlConfigBox: document.getElementById('url-config-box'),
-    baseUrlInput: document.getElementById('base-url-input'),
-    btnPresetGh: document.getElementById('btn-preset-gh'),
-    btnPresetLocal: document.getElementById('btn-preset-local'),
     sharesCountPills: document.querySelectorAll('#shares-count-pills .pill-btn'),
     targetQrCanvas: document.getElementById('target-qr-canvas'),
     btnGotoStep2: document.getElementById('btn-goto-step-2'),
 
     // Step 2
-    step2SharesCountVal: document.getElementById('step2-shares-count-val'),
-    step2SecretPreview: document.getElementById('step2-secret-preview'),
     btnStep2ModeScannable: document.getElementById('btn-step2-mode-scannable'),
     btnStep2ModeOr: document.getElementById('btn-step2-mode-or'),
     btnBackToStep1: document.getElementById('btn-back-to-step-1'),
@@ -245,10 +239,7 @@
       sec.classList.toggle('active', idx + 1 === stepNum);
     });
 
-    if (stepNum === 2) {
-      dom.step2SharesCountVal.textContent = `${state.sharesCount} QR Codes`;
-      dom.step2SecretPreview.textContent = `"${state.text.substring(0, 40)}${state.text.length > 40 ? '...' : ''}"`;
-    } else if (stepNum === 3) {
+    if (stepNum === 3) {
       generateDecomposedShares();
       initSimulator();
     }
@@ -291,35 +282,8 @@
           dom.destinationModePills.forEach(p => p.classList.remove('active'));
           pill.classList.add('active');
           state.destMode = pill.getAttribute('data-dest');
-
-          if (dom.urlConfigBox) {
-            dom.urlConfigBox.style.display = (state.destMode === 'web') ? 'flex' : 'none';
-          }
           updateTargetQRPreview();
         });
-      });
-    }
-
-    if (dom.baseUrlInput) {
-      dom.baseUrlInput.addEventListener('input', debounce(() => {
-        state.baseUrl = dom.baseUrlInput.value.trim() || 'https://je-tu-il.github.io/QR-Shroud/reveal.html';
-        updateTargetQRPreview();
-      }, 300));
-    }
-
-    if (dom.btnPresetGh) {
-      dom.btnPresetGh.addEventListener('click', () => {
-        state.baseUrl = 'https://je-tu-il.github.io/QR-Shroud/reveal.html';
-        if (dom.baseUrlInput) dom.baseUrlInput.value = state.baseUrl;
-        updateTargetQRPreview();
-      });
-    }
-
-    if (dom.btnPresetLocal) {
-      dom.btnPresetLocal.addEventListener('click', () => {
-        state.baseUrl = 'http://192.168.1.164:8080/reveal.html';
-        if (dom.baseUrlInput) dom.baseUrlInput.value = state.baseUrl;
-        updateTargetQRPreview();
       });
     }
 
