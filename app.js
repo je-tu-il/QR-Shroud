@@ -23,7 +23,7 @@
 
     // Destination format
     destMode: 'web', // 'web' (Page Web Confidentielle reveal.html) | 'text' (Texte brut)
-    baseUrl: 'https://je-tu-il.github.io/QR-Shroud/reveal.html',
+    baseUrl: (typeof window !== 'undefined' && window.location?.origin && window.location.origin !== 'null' && window.location.protocol.startsWith('http')) ? new URL('reveal.html', window.location.href).href : 'https://je-tu-il.github.io/QR-Shroud/reveal.html',
 
     // Decomposition mode
     shareMode: 'scannable', // 'scannable' (Clés 100% scannables) | 'or' (Calques physiques transparents)
