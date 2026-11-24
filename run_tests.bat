@@ -1,4 +1,4 @@
 @echo off
 chcp 65001 > nul
 cd /d "%~dp0"
-echo [OK] Tests statiques valides.
+node --test tests/core.test.js

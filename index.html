@@ -35,29 +35,29 @@
 
     <!-- Stepper Navigation (3 Simple Steps) -->
     <nav class="stepper-nav" aria-label="Étapes">
-      <div class="step-indicator active" data-step="1">
-        <div class="step-num">1</div>
-        <div class="step-info">
+      <button type="button" class="step-indicator active" data-step="1" aria-current="step" disabled>
+        <span class="step-num">1</span>
+        <span class="step-info">
           <span class="step-title">Secret</span>
           <span class="step-desc">Image ou Texte</span>
-        </div>
-      </div>
+        </span>
+      </button>
       <div class="step-separator"></div>
-      <div class="step-indicator" data-step="2">
-        <div class="step-num">2</div>
-        <div class="step-info">
+      <button type="button" class="step-indicator" data-step="2" disabled>
+        <span class="step-num">2</span>
+        <span class="step-info">
           <span class="step-title">Détails & Contraste</span>
           <span class="step-desc">Aperçu binaire</span>
-        </div>
-      </div>
+        </span>
+      </button>
       <div class="step-separator"></div>
-      <div class="step-indicator" data-step="3">
-        <div class="step-num">3</div>
-        <div class="step-info">
+      <button type="button" class="step-indicator" data-step="3" disabled>
+        <span class="step-num">3</span>
+        <span class="step-info">
           <span class="step-title">Superposition & Export</span>
           <span class="step-desc">Simulateur & Impression</span>
-        </div>
-      </div>
+        </span>
+      </button>
     </nav>
 
     <!-- Main Content Area -->
@@ -70,7 +70,7 @@
           <p>Le texte est instantanément encodé dans un vrai QR code. Il sera ensuite découpé en plusieurs parts qui le masqueront totalement.</p>
         </div>
 
-        <div class="step-1-layout" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:1.5rem; align-items:start;">
+        <div class="step-1-layout" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap:1.5rem; align-items:start;">
           <!-- Left: Input & Options -->
           <div class="text-input-card card">
             <label for="secret-text-input" style="font-weight:700; color:var(--text-main); display:block; margin-bottom:0.4rem;">

@@ -1960,3 +1960,16 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus {
   color: #7dd3fc;
 }
 
+.app-header h1 { letter-spacing: -.045em; }
+.stepper-nav { gap: .5rem; }
+.step-indicator { min-height: 44px; }
+.section-heading { text-wrap: balance; }
+.wizard-container :where(button, a, input, select, textarea):focus-visible { outline: 2px solid #8ec8ff; outline-offset: 3px; }
+@media (max-width: 520px) {
+  .stepper-nav { justify-content: flex-start; overflow-x: auto; }
+  .step-indicator { flex: 0 0 auto; }
+}
+
+.stepper-nav button { font: inherit; color: inherit; text-align: left; }
+.stepper-nav button:disabled { cursor: default; }
+.stepper-nav button:focus-visible { outline: 2px solid #8ec8ff; outline-offset: 2px; }

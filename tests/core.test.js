@@ -1,27 +1,23 @@
-/**
- * Suite de tests unitaires automatisée — QR-Shroud
- */
-describe('QR-Shroud — Core Module Tests', () => {
-    test('Initialization sanity check', () => {
-        const projectName = 'QR-Shroud';
-        expect(projectName).toBeDefined();
-        expect(projectName.length).toBeGreaterThan(0);
-    });
+const assert = require('node:assert/strict');
+const { readFileSync } = require('node:fs');
+const { join } = require('node:path');
+const { test } = require('node:test');
 
-    test('Configuration & Scalability readiness', () => {
-        const config = {
-            env: 'production',
-            clustering: true,
-            maxConnections: 10000
-        };
-        expect(config.env).toBe('production');
-        expect(config.clustering).toBe(true);
-        expect(config.maxConnections).toBeGreaterThanOrEqual(1000);
-    });
+const html = readFileSync(join(__dirname, '..', 'index.html'), 'utf8');
 
-    test('Healthcheck heartbeat verification', () => {
-        const ping = () => ({ status: 'healthy', uptime: process.uptime() });
-        const res = ping();
-        expect(res.status).toBe('healthy');
-    });
+test('les trois étapes ont des boutons reliés à leurs sections', () => {
+  const buttons = [...html.matchAll(/<button type="button" class="step-indicator[^"]*" data-step="(\d+)"([^>]*)>/g)];
+  const sections = [...html.matchAll(/<section class="wizard-step[^"]*" id="step-(\d+)">/g)];
+  assert.deepEqual(buttons.map(match => match[1]), ['1', '2', '3']);
+  assert.deepEqual(sections.map(match => match[1]), buttons.map(match => match[1]));
+  assert.match(buttons[0][2], /aria-current="step"/);
+  assert.ok(buttons.every(match => match[2].includes('disabled')));
+});
+
+test('la saisie et les commandes de navigation restent accessibles au chargement', () => {
+  assert.match(html, /<label for="secret-text-input"/);
+  assert.match(html, /<textarea id="secret-text-input"/);
+  for (const id of ['btn-goto-step-2', 'btn-goto-step-3', 'btn-back-to-step-1', 'btn-back-to-step-2']) {
+    assert.match(html, new RegExp('<button[^>]*id="' + id + '"'));
+  }
 });

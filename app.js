@@ -236,9 +236,13 @@
 
     dom.stepIndicators.forEach(ind => {
       const s = parseInt(ind.getAttribute('data-step'), 10);
-      ind.classList.remove('active', 'completed');
-      if (s === stepNum) ind.classList.add('active');
-      else if (s < stepNum) ind.classList.add('completed');
+      const isCurrent = s === stepNum;
+      const isCompleted = s < stepNum;
+      ind.classList.toggle('active', isCurrent);
+      ind.classList.toggle('completed', isCompleted);
+      ind.disabled = !isCompleted;
+      if (isCurrent) ind.setAttribute('aria-current', 'step');
+      else ind.removeAttribute('aria-current');
     });
 
     dom.wizardSteps.forEach((sec, idx) => {
